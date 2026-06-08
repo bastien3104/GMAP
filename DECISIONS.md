@@ -24,3 +24,22 @@
   le garde-fou « ignored build scripts » de pnpm faisait échouer `install` et tous les
   scripts (binaire natif esbuild requis par Vite). À resserrer si pnpm corrige le
   respect de `onlyBuiltDependencies` seul.
+
+## 2026-06-08 — Phase 1 (Modèle & GPX I/O)
+- **Parsing GPX = `fast-xml-parser`** (et non `@tmcw/togeojson` suggéré au prompt).
+  Écart assumé : lecture GPX → **modèle direct** (fidélité ele/time/multi-segments/
+  routes/waypoints) et **testable en Node** sans DOM. togeojson cible GeoJSON (pivot
+  lossy pour la structure) et exige un DOM.
+- **GeoJSON = pivot d'affichage uniquement** (`core/geojson/to-geojson.ts`) ; le modèle
+  reste la source de vérité.
+- **Modèle étendu** : `Track.segments: TrackPoint[][]` + `Track.kind: "track"|"route"`,
+  `Waypoint.time?`. Préserve la structure GPX et prépare track↔route (Phase 6).
+- **Round-trip = fidélité structurelle** (pas octet-à-octet) : test
+  `parse(build(parse(x)))` == `parse(x)` (hors identifiants aléatoires). Nombres écrits
+  tels quels pour un round-trip exact des coordonnées/altitudes.
+- **I/O fichier = frontend pur** (FileReader + Blob), fonctionnel offline. Plugin Tauri
+  `dialog`/`fs` repoussé en Phase 7/8.
+- **État = store Zustand minimal** (`store/project-store.ts`) sans undo/redo (Phase 3).
+- **tsconfig en ES2022** (était ES2020) : pour `Error(message, { cause })` et cibler le
+  webview moderne. Ajout `@types/node` (lecture fixtures dans les tests) et
+  `@types/geojson` (types GeoJSON).
