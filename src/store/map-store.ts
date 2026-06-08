@@ -14,6 +14,10 @@ interface MapState {
   offline: boolean;
   /** Active/désactive le mode hors-ligne (propagé au backend). */
   setOffline: (offline: boolean) => void;
+  /** Mode édition des points de la trace sélectionnée. */
+  editMode: boolean;
+  /** Active/désactive le mode édition. */
+  setEditMode: (editMode: boolean) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -26,4 +30,6 @@ export const useMapStore = create<MapState>((set) => ({
       /* hors Tauri ou backend indisponible : on ignore */
     });
   },
+  editMode: false,
+  setEditMode: (editMode) => set({ editMode }),
 }));
