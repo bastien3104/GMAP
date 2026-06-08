@@ -79,3 +79,16 @@
 - **Régression toolchain** (2026-06-08) : les binaires C++ MSVC (`link.exe`/`cl.exe`) ont
   disparu (nettoyage disque auto sous pression d'espace) → réparés via VS Installer. Garder
   ≥ 20-25 Go libres ; `cargo clean` libère ~5 Go.
+
+## 2026-06-08 — Phase 3a (Calques + undo/redo)
+- **Undo/redo par instantanés immuables** (`past/present/future` dans `project-store`),
+  toute mutation via `applyEdit` (CLAUDE.md : historique centralisé, mutations
+  enregistrables). Partage de structure → coût mémoire faible ; limite d'historique 100.
+- **Opérations de trace pures** dans `core/edit/track-ops.ts` (testées) ; le store ne fait
+  qu'orchestrer/empiler.
+- **Recadrage carte uniquement au chargement** d'un projet (suivi par `project.id`), plus
+  à chaque édition (sinon la carte sautait à chaque renommage).
+- **Nom/couleur commités au blur** (une entrée d'historique, pas une par frappe).
+- **Sélection de trace** (`selectedTrackId`) + surbrillance via propriété GeoJSON `selected`
+  et `line-width` conditionnelle.
+- Phase 3b (édition des points sur la carte) réutilisera `applyEdit`/undo-redo.

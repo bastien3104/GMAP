@@ -30,6 +30,7 @@ GMAP/
 │  ├─ core/                 # logique métier pure (testée, sans UI)
 │  │  ├─ model.ts           # types Project / Track / Waypoint / TrackPoint + helpers
 │  │  ├─ tiles/             # math de tuiles Web Mercator (+ tests)
+│  │  ├─ edit/              # opérations d'édition pures (track-ops…) (+ tests)
 │  │  ├─ gpx/               # import/export GPX
 │  │  │  ├─ parse-gpx.ts    # GPX → modèle (tolérant)
 │  │  │  ├─ build-gpx.ts    # modèle → GPX 1.1
@@ -41,12 +42,14 @@ GMAP/
 │  │  ├─ geo/               # stats, simplification, lissage (Phase 5/6)
 │  │  ├─ routing/           # BRouter offline + Géoplateforme (Phase 4)
 │  │  └─ elevation/         # altitude API + MNT (Phase 5)
-│  ├─ store/                # Zustand (undo/redo en Phase 3)
-│  │  ├─ project-store.ts   # projet courant
-│  │  └─ map-store.ts       # état carte (fond actif)
+│  ├─ store/                # Zustand
+│  │  ├─ project-store.ts   # projet courant + historique undo/redo + sélection
+│  │  └─ map-store.ts       # état carte (fond actif, hors-ligne)
 │  ├─ ui/                   # composants UI
 │  │  ├─ Toolbar.tsx        # ouvrir / exporter GPX + sélecteur de fond
 │  │  ├─ BasemapSelector.tsx
+│  │  ├─ LayersPanel.tsx    # calques : visibilité/couleur/nom/ordre/suppr + annuler/rétablir
+│  │  ├─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
 │  │  └─ OfflinePanel.tsx   # téléchargement de zone + indicateur online/offline
 │  └─ offline/              # cache offline
 │     └─ tiles-api.ts       # pont vers les commandes Rust (download/offline/stats)
@@ -70,6 +73,13 @@ Source de vérité : `src/core/model.ts`.
 - **Waypoint** = `{ id, lat, lon, name, ele?, time?, note?, symbol? }`
 
 `ele` et `time` sont préservés à l'import comme à l'export.
+
+### Édition & undo/redo (Phase 3a)
+Le `project-store` historise l'état : `past[] / project (présent) / future[]`. Toute
+mutation passe par `applyEdit(updater)` (instantanés immuables à partage de structure),
+ce qui la rend annulable (`undo`/`redo`, Ctrl+Z / Ctrl+Y). Les opérations pures vivent
+dans `core/edit/` (ex. `track-ops` : renommer, couleur, visibilité, réordonner, supprimer).
+`selectedTrackId` pilote la surbrillance (et, en 3b, la cible d'édition des points).
 
 ## Flux de données
 ```
