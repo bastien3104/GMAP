@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { MapView } from "../map/MapView";
 import { Toolbar } from "../ui/Toolbar";
+import { OfflinePanel } from "../ui/OfflinePanel";
 import "./app.css";
 
 /**
@@ -15,6 +16,7 @@ export function App(): ReactElement {
     <div className="app-shell">
       <MapView />
       <Toolbar />
+      <OfflinePanel />
     </div>
   );
 }

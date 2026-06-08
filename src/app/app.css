@@ -102,7 +102,99 @@ body {
   font-weight: 600;
 }
 
+/* Panneau de cache offline (bas-gauche). */
+.offline-panel {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: calc(100vw - 24px);
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  font-size: 13px;
+  color: #333;
+}
+
+.offline-status,
+.offline-download,
+.offline-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.offline-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.offline-panel .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.offline-panel .dot-online {
+  background: #1b7f3b;
+}
+.offline-panel .dot-offline {
+  background: #b00020;
+}
+
+.offline-download input[type="number"] {
+  width: 52px;
+  padding: 4px 6px;
+  border: 1px solid #c7c7c7;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.offline-download button,
+.offline-panel button {
+  padding: 5px 10px;
+  border: 1px solid #c7c7c7;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+.offline-download button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.offline-estimate {
+  color: #555;
+}
+.offline-message {
+  color: #1b7f3b;
+}
+.offline-progress progress {
+  width: 160px;
+}
+
 @media (prefers-color-scheme: dark) {
+  .offline-panel {
+    background: rgba(32, 32, 36, 0.92);
+    color: #ddd;
+  }
+  .offline-panel button,
+  .offline-download input[type="number"] {
+    background: #2a2a2e;
+    border-color: #555;
+    color: #eee;
+  }
+  .offline-estimate {
+    color: #aaa;
+  }
+
   .toolbar {
     background: rgba(32, 32, 36, 0.92);
   }
