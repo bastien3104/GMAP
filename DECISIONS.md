@@ -92,3 +92,15 @@
 - **Sélection de trace** (`selectedTrackId`) + surbrillance via propriété GeoJSON `selected`
   et `line-width` conditionnelle.
 - Phase 3b (édition des points sur la carte) réutilisera `applyEdit`/undo-redo.
+
+## 2026-06-08 — Phase 3b (Édition des points)
+- **Mode édition explicite** (`map-store.editMode`) sur la trace sélectionnée : poignées
+  de sommets déplaçables, **insertion par poignées de milieu** (pas de projection sur
+  segment), suppression du sommet sélectionné (Suppr), Échap pour quitter.
+- **Drag = mise à jour visuelle directe des sources** (pas d'écriture store) ; **commit
+  unique** au relâchement via `applyEdit` → une seule entrée d'historique par déplacement.
+- **Sélection/drag unifiés** dans le cycle mousedown/move/up (pas de handler `click`
+  séparé) pour éviter l'ambiguïté clic vs glissement.
+- **Opérations de points pures** (`core/edit/point-ops.ts`), `mapSegment` renvoie le même
+  projet si rien ne change (pas d'entrée d'historique vide).
+- Table des points éditable + sélection multiple repoussées en **Phase 3c**.

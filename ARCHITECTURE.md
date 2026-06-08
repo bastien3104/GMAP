@@ -25,6 +25,7 @@ GMAP/
 │  │  ├─ basemaps.ts        # définition des fonds + URL proxy tiles://
 │  │  ├─ map-style.ts       # build de style/source raster (pur)
 │  │  ├─ track-layers.ts    # source + couches MapLibre du projet
+│  │  ├─ edit-layers.ts     # poignées d'édition (sommets/milieux)
 │  │  ├─ map-ref.ts         # référence carte (emprise/zoom courants)
 │  │  └─ basemaps.test.ts
 │  ├─ core/                 # logique métier pure (testée, sans UI)
@@ -78,8 +79,15 @@ Source de vérité : `src/core/model.ts`.
 Le `project-store` historise l'état : `past[] / project (présent) / future[]`. Toute
 mutation passe par `applyEdit(updater)` (instantanés immuables à partage de structure),
 ce qui la rend annulable (`undo`/`redo`, Ctrl+Z / Ctrl+Y). Les opérations pures vivent
-dans `core/edit/` (ex. `track-ops` : renommer, couleur, visibilité, réordonner, supprimer).
-`selectedTrackId` pilote la surbrillance (et, en 3b, la cible d'édition des points).
+dans `core/edit/` (`track-ops` : renommer/couleur/visibilité/ordre/suppression ;
+`point-ops` : déplacer/insérer/supprimer un point). `selectedTrackId` pilote la
+surbrillance et la cible d'édition.
+
+**Mode édition des points** (`map-store.editMode`) : sur la trace sélectionnée, `MapView`
+affiche des poignées (sources `edit-vertices`/`edit-midpoints`). Glisser un sommet met à
+jour la géométrie en direct (sans toucher au store) et commite **une** entrée d'historique
+au relâchement ; clic sur un milieu insère un point ; sommet sélectionné + Suppr supprime ;
+Échap quitte le mode.
 
 ## Flux de données
 ```
