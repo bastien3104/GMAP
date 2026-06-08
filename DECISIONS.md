@@ -43,3 +43,9 @@
 - **tsconfig en ES2022** (était ES2020) : pour `Error(message, { cause })` et cibler le
   webview moderne. Ajout `@types/node` (lecture fixtures dans les tests) et
   `@types/geojson` (types GeoJSON).
+- **Export via dialogue natif + FS Rust** (correctif) : l'export « frontend pur »
+  (`<a download>` + Blob) est traité silencieusement par WebView2 (fichier déposé dans
+  Téléchargements sans dialogue ni retour) → mauvaise UX. Devancement de la décision
+  « dialog/fs en Phase 7/8 » : plugin Tauri `dialog` (boîte « Enregistrer sous ») +
+  commande Rust `save_text_file` (accès FS, prévu par CLAUDE.md) + message de
+  confirmation. Repli Blob conservé hors Tauri (dev navigateur).

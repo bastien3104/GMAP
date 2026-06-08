@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import type { ChangeEvent, ReactElement } from "react";
+import { invoke, isTauri } from "@tauri-apps/api/core";
+import { save } from "@tauri-apps/plugin-dialog";
 import { GpxParseError, parseGpx } from "../core/gpx/parse-gpx";
 import { buildGpx } from "../core/gpx/build-gpx";
 import { trackPointCount } from "../core/model";
@@ -8,17 +10,21 @@ import { useProjectStore } from "../store/project-store";
 /**
  * Barre d'outils principale (Phase 1) : ouverture et export de fichiers GPX.
  *
- * I/O fichier purement frontend (FileReader / Blob), donc fonctionnelle offline.
- * Aucune logique métier ici : le parsing/sérialisation vit dans `core/gpx`.
+ * Import : lecture frontend (FileReader). Export : sous Tauri, boîte de dialogue
+ * native « Enregistrer sous » (plugin dialog) + écriture FS côté Rust (commande
+ * `save_text_file`) ; repli téléchargement Blob hors Tauri (dev navigateur).
+ * Aucune logique métier ici : parsing/sérialisation vivent dans `core/gpx`.
  */
 export function Toolbar(): ReactElement {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const project = useProjectStore((s) => s.project);
   const loadProject = useProjectStore((s) => s.loadProject);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
   async function importFile(file: File): Promise<void> {
     setError(null);
+    setStatus(null);
     try {
       const text = await file.text();
       const name = file.name.replace(/\.gpx$/i, "");
@@ -38,16 +44,39 @@ export function Toolbar(): ReactElement {
     event.currentTarget.value = ""; // autorise le ré-import du même fichier
   }
 
-  function exportGpx(): void {
+  async function exportGpx(): Promise<void> {
     if (project === null) return;
+    setError(null);
+    setStatus(null);
     const xml = buildGpx(project);
-    const blob = new Blob([xml], { type: "application/gpx+xml" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${project.name.trim() || "export"}.gpx`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    const filename = `${project.name.trim() || "export"}.gpx`;
+
+    try {
+      if (isTauri()) {
+        const path = await save({
+          defaultPath: filename,
+          filters: [{ name: "GPX", extensions: ["gpx"] }],
+        });
+        if (path === null) return; // annulé par l'utilisateur
+        await invoke("save_text_file", { path, contents: xml });
+        setStatus(`Exporté : ${path}`);
+      } else {
+        const blob = new Blob([xml], { type: "application/gpx+xml" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        setStatus("Fichier exporté (dossier de téléchargements).");
+      }
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? `Échec de l'export : ${cause.message}`
+          : "Échec de l'export GPX.",
+      );
+    }
   }
 
   const pointTotal =
@@ -67,7 +96,11 @@ export function Toolbar(): ReactElement {
       <button type="button" onClick={() => fileInputRef.current?.click()}>
         Ouvrir GPX
       </button>
-      <button type="button" onClick={exportGpx} disabled={project === null}>
+      <button
+        type="button"
+        onClick={() => void exportGpx()}
+        disabled={project === null}
+      >
         Exporter GPX
       </button>
 
@@ -77,6 +110,7 @@ export function Toolbar(): ReactElement {
           {project.waypoints.length} waypoint(s)
         </span>
       )}
+      {status !== null && <span className="toolbar-status">✓ {status}</span>}
       {error !== null && <span className="toolbar-error">⚠ {error}</span>}
     </div>
   );

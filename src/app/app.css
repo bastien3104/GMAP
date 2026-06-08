@@ -72,6 +72,15 @@ body {
   color: #333;
 }
 
+.toolbar-status {
+  color: #1b7f3b;
+  font-weight: 600;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .toolbar-error {
   color: #b00020;
   font-weight: 600;
