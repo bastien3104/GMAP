@@ -39,7 +39,9 @@ export function MapView(): ReactElement {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const project = useProjectStore((s) => s.project);
+  const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
   const activeBasemapId = useMapStore((s) => s.activeBasemapId);
+  const lastFittedProjectId = useRef<string | null>(null);
 
   // Initialisation de la carte (une seule fois).
   useEffect(() => {
@@ -96,17 +98,24 @@ export function MapView(): ReactElement {
     }
   }, [activeBasemapId, mapReady]);
 
-  // Synchronise les données du projet (source GeoJSON) et recadre la vue.
+  // Synchronise les données du projet (source GeoJSON) ; recadre seulement au
+  // chargement d'un nouveau projet (pas à chaque édition).
   useEffect(() => {
     const map = mapRef.current;
     if (map === null || !mapReady) return;
 
     const source = map.getSource(PROJECT_SOURCE_ID);
     if (source === undefined) return;
-    const data = project === null ? EMPTY_DATA : projectToGeoJSON(project);
+    const data =
+      project === null ? EMPTY_DATA : projectToGeoJSON(project, selectedTrackId);
     (source as maplibregl.GeoJSONSource).setData(data);
 
-    if (project !== null) {
+    if (project === null) {
+      lastFittedProjectId.current = null;
+      return;
+    }
+    if (project.id !== lastFittedProjectId.current) {
+      lastFittedProjectId.current = project.id;
       const bounds = projectBounds(project);
       if (bounds !== null) {
         const [minLon, minLat, maxLon, maxLat] = bounds;
@@ -119,7 +128,7 @@ export function MapView(): ReactElement {
         );
       }
     }
-  }, [project, mapReady]);
+  }, [project, selectedTrackId, mapReady]);
 
   return <div ref={containerRef} className="map-root" />;
 }

@@ -16,6 +16,7 @@ export interface TrackFeatureProperties {
   name: string;
   color: string;
   segmentIndex: number;
+  selected: boolean;
 }
 
 /** Propriétés attachées aux features de waypoint. */
@@ -29,6 +30,7 @@ function segmentFeature(
   track: Track,
   segmentIndex: number,
   coordinates: number[][],
+  selected: boolean,
 ): Feature<LineString, TrackFeatureProperties> {
   return {
     type: "Feature",
@@ -40,6 +42,7 @@ function segmentFeature(
       name: track.name,
       color: track.color,
       segmentIndex,
+      selected,
     },
   };
 }
@@ -53,15 +56,19 @@ function waypointFeature(wpt: Waypoint): Feature<Point, WaypointFeaturePropertie
 }
 
 /** Convertit un `Project` en `FeatureCollection` (traces visibles + waypoints). */
-export function projectToGeoJSON(project: Project): FeatureCollection {
+export function projectToGeoJSON(
+  project: Project,
+  selectedTrackId: string | null = null,
+): FeatureCollection {
   const features: Feature[] = [];
 
   for (const track of project.tracks) {
     if (!track.visible) continue;
+    const selected = track.id === selectedTrackId;
     track.segments.forEach((segment, segmentIndex) => {
       if (segment.length < 2) return; // une LineString a besoin d'au moins 2 points
       const coordinates = segment.map((p) => [p.lon, p.lat]);
-      features.push(segmentFeature(track, segmentIndex, coordinates));
+      features.push(segmentFeature(track, segmentIndex, coordinates, selected));
     });
   }
 

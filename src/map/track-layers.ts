@@ -18,7 +18,8 @@ export const trackLineLayer: LineLayerSpecification = {
   layout: { "line-join": "round", "line-cap": "round" },
   paint: {
     "line-color": ["get", "color"],
-    "line-width": 3,
+    // Trace sélectionnée plus épaisse (surbrillance).
+    "line-width": ["case", ["get", "selected"], 6, 3],
   },
 };
 
