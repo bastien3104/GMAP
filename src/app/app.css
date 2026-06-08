@@ -102,6 +102,108 @@ body {
   font-weight: 600;
 }
 
+/* Panneau de calques (droite, sous les contrôles de navigation). */
+.layers-panel {
+  position: absolute;
+  top: 90px;
+  right: 12px;
+  z-index: 10;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 180px);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  font-size: 13px;
+  color: #333;
+}
+
+.layers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.layers-actions button {
+  border: 1px solid #c7c7c7;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px 7px;
+  font-size: 14px;
+}
+.layers-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.layers-empty {
+  margin: 4px 0;
+  color: #777;
+}
+
+.layers-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.layer-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.layer-row.selected {
+  background: rgba(0, 119, 182, 0.15);
+}
+.layer-row .layer-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 3px 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 13px;
+  color: inherit;
+}
+.layer-row .layer-name:hover,
+.layer-row .layer-name:focus {
+  border-color: #c7c7c7;
+  background: #fff;
+}
+.layer-row input[type="color"] {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.layer-meta {
+  color: #999;
+  font-size: 11px;
+}
+.layer-row button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  color: #555;
+  font-size: 12px;
+}
+.layer-row button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 /* Panneau de cache offline (bas-gauche). */
 .offline-panel {
   position: absolute;
@@ -181,6 +283,24 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
+  .layers-panel {
+    background: rgba(32, 32, 36, 0.94);
+    color: #ddd;
+  }
+  .layers-actions button,
+  .layer-row .layer-name:hover,
+  .layer-row .layer-name:focus {
+    background: #2a2a2e;
+    border-color: #555;
+    color: #eee;
+  }
+  .layer-row.selected {
+    background: rgba(0, 119, 182, 0.3);
+  }
+  .layer-row button {
+    color: #bbb;
+  }
+
   .offline-panel {
     background: rgba(32, 32, 36, 0.92);
     color: #ddd;
