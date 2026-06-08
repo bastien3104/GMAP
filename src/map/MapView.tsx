@@ -2,34 +2,43 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import type { FeatureCollection } from "geojson";
 import maplibregl from "maplibre-gl";
+import type { StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { PLAN_IGN } from "./basemaps";
-import { buildRasterStyle } from "./map-style";
+import { BASEMAPS } from "./basemaps";
+import {
+  basemapLayer,
+  basemapLayerId,
+  basemapRasterSource,
+  basemapSourceId,
+} from "./map-style";
 import {
   PROJECT_SOURCE_ID,
   trackLineLayer,
   waypointCircleLayer,
 } from "./track-layers";
 import { useProjectStore } from "../store/project-store";
+import { useMapStore } from "../store/map-store";
 import { projectBounds, projectToGeoJSON } from "../core/geojson/to-geojson";
 
 /** Vue initiale : centre approximatif de la France métropolitaine. */
 const FRANCE_CENTER: [number, number] = [2.4, 46.6];
 const INITIAL_ZOOM = 5;
 const EMPTY_DATA: FeatureCollection = { type: "FeatureCollection", features: [] };
+const EMPTY_STYLE: StyleSpecification = { version: 8, sources: {}, layers: [] };
 
 /**
  * Composant carte MapLibre.
  *
- * Initialise la carte (fond Plan IGN, attribution, navigation), ajoute la source et
- * les couches du projet, et synchronise leur contenu avec le store. Aucune logique
- * métier ici (elle vit dans `core/` et `store/`).
+ * Ajoute tous les fonds (un par source/couche, seul l'actif visible) puis la source
+ * et les couches du projet par-dessus. La bascule de fond se fait par visibilité de
+ * couche (les couches projet ne sont jamais perdues). Aucune logique métier ici.
  */
 export function MapView(): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const project = useProjectStore((s) => s.project);
+  const activeBasemapId = useMapStore((s) => s.activeBasemapId);
 
   // Initialisation de la carte (une seule fois).
   useEffect(() => {
@@ -38,7 +47,7 @@ export function MapView(): ReactElement {
 
     const map = new maplibregl.Map({
       container,
-      style: buildRasterStyle(PLAN_IGN),
+      style: EMPTY_STYLE,
       center: FRANCE_CENTER,
       zoom: INITIAL_ZOOM,
       attributionControl: false,
@@ -50,6 +59,13 @@ export function MapView(): ReactElement {
     );
 
     map.on("load", () => {
+      const active = useMapStore.getState().activeBasemapId;
+      // Un fond par source/couche ; seul l'actif est visible.
+      for (const basemap of BASEMAPS) {
+        map.addSource(basemapSourceId(basemap.id), basemapRasterSource(basemap));
+        map.addLayer(basemapLayer(basemap, basemap.id === active));
+      }
+      // Données du projet par-dessus les fonds.
       map.addSource(PROJECT_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
       map.addLayer(trackLineLayer);
       map.addLayer(waypointCircleLayer);
@@ -63,6 +79,19 @@ export function MapView(): ReactElement {
       setMapReady(false);
     };
   }, []);
+
+  // Bascule de fond (visibilité des couches).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null || !mapReady) return;
+    for (const basemap of BASEMAPS) {
+      map.setLayoutProperty(
+        basemapLayerId(basemap.id),
+        "visibility",
+        basemap.id === activeBasemapId ? "visible" : "none",
+      );
+    }
+  }, [activeBasemapId, mapReady]);
 
   // Synchronise les données du projet (source GeoJSON) et recadre la vue.
   useEffect(() => {

@@ -50,6 +50,22 @@ body {
   font-size: 13px;
 }
 
+.basemap-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #333;
+}
+
+.basemap-selector select {
+  padding: 5px 8px;
+  border: 1px solid #c7c7c7;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 .toolbar button {
   padding: 6px 12px;
   border: 1px solid #c7c7c7;
@@ -90,7 +106,8 @@ body {
   .toolbar {
     background: rgba(32, 32, 36, 0.92);
   }
-  .toolbar button {
+  .toolbar button,
+  .basemap-selector select {
     background: #2a2a2e;
     border-color: #555;
     color: #eee;
@@ -98,7 +115,8 @@ body {
   .toolbar button:hover:not(:disabled) {
     background: #3a3a40;
   }
-  .toolbar-info {
+  .toolbar-info,
+  .basemap-selector {
     color: #ddd;
   }
 }

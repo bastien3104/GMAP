@@ -6,6 +6,7 @@ import { GpxParseError, parseGpx } from "../core/gpx/parse-gpx";
 import { buildGpx } from "../core/gpx/build-gpx";
 import { trackPointCount } from "../core/model";
 import { useProjectStore } from "../store/project-store";
+import { BasemapSelector } from "./BasemapSelector";
 
 /**
  * Barre d'outils principale (Phase 1) : ouverture et export de fichiers GPX.
@@ -86,6 +87,7 @@ export function Toolbar(): ReactElement {
 
   return (
     <div className="toolbar">
+      <BasemapSelector />
       <input
         ref={fileInputRef}
         type="file"
