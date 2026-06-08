@@ -49,3 +49,15 @@
   « dialog/fs en Phase 7/8 » : plugin Tauri `dialog` (boîte « Enregistrer sous ») +
   commande Rust `save_text_file` (accès FS, prévu par CLAUDE.md) + message de
   confirmation. Repli Blob conservé hors Tauri (dev navigateur).
+
+## 2026-06-08 — Phase 2a (Sélecteur de fonds)
+- **Fonds inclus** : Plan IGN, Ortho IGN (`ORTHOIMAGERY.ORTHOPHOTOS`, `image/jpeg`,
+  confirmé GetCapabilities), OpenTopoMap, OSM — tous libres, sans clé. **SCAN25 différé**
+  (clé privée `ign_scan_ws`, licence restrictive ; sera ajouté via champ clé optionnel).
+- **Bascule de fond = visibilité de couches** (et non `setStyle`) : tous les fonds sont
+  des sources/couches ajoutées au chargement, seule l'active est visible. Évite de
+  perdre/re-créer les couches projet à chaque changement.
+- **Sous-domaines OpenTopoMap** : plusieurs URLs `a/b/c` dans `tiles` (MapLibre ne gère
+  pas `{s}`).
+- **État carte séparé** : nouveau store `map-store` (fond actif), distinct de
+  `project-store`. Le cache offline (MBTiles + `tiles://`) est la Phase 2b.

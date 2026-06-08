@@ -40,9 +40,11 @@ GMAP/
 │  │  ├─ routing/           # BRouter offline + Géoplateforme (Phase 4)
 │  │  └─ elevation/         # altitude API + MNT (Phase 5)
 │  ├─ store/                # Zustand (undo/redo en Phase 3)
-│  │  └─ project-store.ts   # projet courant
+│  │  ├─ project-store.ts   # projet courant
+│  │  └─ map-store.ts       # état carte (fond actif)
 │  ├─ ui/                   # composants UI
-│  │  └─ Toolbar.tsx        # ouvrir / exporter GPX
+│  │  ├─ Toolbar.tsx        # ouvrir / exporter GPX + sélecteur de fond
+│  │  └─ BasemapSelector.tsx
 │  └─ offline/              # MBTiles, téléchargement de zones (Phase 2)
 └─ src-tauri/               # backend Rust (minimal)
    ├─ Cargo.toml · build.rs · tauri.conf.json
@@ -79,9 +81,17 @@ Modèle ──buildGpx──▶ GPX 1.1   (export ; KML/TCX/FIT en Phase 7)
   en Phase 7/8.
 
 ## Fonds de carte
-WMTS raster Géoplateforme (pas de WFS/WMS-V — évolution annoncée mi-2026).
-- **Plan IGN v2** : `GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2`, style `normal`, `image/png`,
-  TileMatrixSet `PM` (EPSG:3857, 256 px, z0–19). Public, sans clé. Attribution affichée.
+Raster, sélectionnables via un menu (`BasemapSelector` → `map-store.activeBasemapId`).
+Tous ajoutés à la carte au chargement (une source/couche chacun) ; la bascule se fait
+par **visibilité de couche** (pas de `setStyle`, les couches projet restent en place).
+Attribution du fond actif affichée en permanence (conformité licence/CGU).
+- **Plan IGN v2** : `GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2`, `image/png`, z0–19 (Géoplateforme).
+- **Ortho IGN** : `ORTHOIMAGERY.ORTHOPHOTOS`, `image/jpeg`, z6–19 (Géoplateforme).
+- **OpenTopoMap** : tuiles XYZ `a/b/c`, z0–17 (CC-BY-SA, données OSM).
+- **OSM** standard : `tile.openstreetmap.org`, z0–19.
+- IGN via WMTS-KVP, TileMatrixSet `PM` (EPSG:3857, 256 px). Pas de WFS/WMS-V (évolution
+  annoncée mi-2026). **SCAN25 différé** (clé privée, licence restrictive).
+- Le cache offline (MBTiles + protocole `tiles://`) arrive en Phase 2b.
 
 ## Backend Rust (src-tauri)
 Minimal (initialise Tauri + plugin opener). Accueillera : protocole custom `tiles://`
