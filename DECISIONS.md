@@ -61,3 +61,21 @@
   pas `{s}`).
 - **État carte séparé** : nouveau store `map-store` (fond actif), distinct de
   `project-store`. Le cache offline (MBTiles + `tiles://`) est la Phase 2b.
+
+## 2026-06-08 — Phase 2b (Cache offline MBTiles + tiles://)
+- **Routage proxy `tiles://`** : sous Tauri, tous les fonds passent par
+  `tiles://localhost/{layer}/{z}/{x}/{y}`. Handler Rust : MBTiles d'abord, sinon réseau
+  (si non hors-ligne), sinon PNG transparent. Repli URLs directes hors Tauri.
+- **Cache = téléchargements explicites uniquement** (respect CGU ; pas de cache
+  opportuniste de navigation).
+- **Stack Rust** : `rusqlite` (feature `bundled`, SQLite embarqué) pour le MBTiles ;
+  `reqwest` (`rustls-tls`, `blocking`) pour le réseau. I/O réseau+SQLite exécutées dans
+  `spawn_blocking` (évite de tenir une `Connection` !Send à travers un `await`).
+- **Téléchargement séquentiel** (naturellement throttlé) avec **plafond 50 000 tuiles**
+  (anti-abus) + évènement `download-progress`. Concurrence = optimisation future.
+- **Mode hors-ligne** = `AtomicBool` partagé (`set_offline`) respecté par le handler.
+- **URL custom scheme** : `http://tiles.localhost/...` sous Windows, `tiles://localhost/...`
+  ailleurs (le handler ignore l'hôte, parse le chemin).
+- **Régression toolchain** (2026-06-08) : les binaires C++ MSVC (`link.exe`/`cl.exe`) ont
+  disparu (nettoyage disque auto sous pression d'espace) → réparés via VS Installer. Garder
+  ≥ 20-25 Go libres ; `cargo clean` libère ~5 Go.

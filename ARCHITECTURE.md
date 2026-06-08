@@ -21,13 +21,15 @@ GMAP/
 │  │  ├─ App.tsx            # carte + barre d'outils
 │  │  └─ app.css
 │  ├─ map/                  # MapLibre : init, fonds, style, couches
-│  │  ├─ MapView.tsx        # composant carte (init, source projet, fitBounds)
-│  │  ├─ basemaps.ts        # définition des fonds (Plan IGN…)
-│  │  ├─ map-style.ts       # build d'un style raster (pur)
+│  │  ├─ MapView.tsx        # composant carte (init, fonds, source projet, fitBounds)
+│  │  ├─ basemaps.ts        # définition des fonds + URL proxy tiles://
+│  │  ├─ map-style.ts       # build de style/source raster (pur)
 │  │  ├─ track-layers.ts    # source + couches MapLibre du projet
+│  │  ├─ map-ref.ts         # référence carte (emprise/zoom courants)
 │  │  └─ basemaps.test.ts
 │  ├─ core/                 # logique métier pure (testée, sans UI)
 │  │  ├─ model.ts           # types Project / Track / Waypoint / TrackPoint + helpers
+│  │  ├─ tiles/             # math de tuiles Web Mercator (+ tests)
 │  │  ├─ gpx/               # import/export GPX
 │  │  │  ├─ parse-gpx.ts    # GPX → modèle (tolérant)
 │  │  │  ├─ build-gpx.ts    # modèle → GPX 1.1
@@ -44,12 +46,19 @@ GMAP/
 │  │  └─ map-store.ts       # état carte (fond actif)
 │  ├─ ui/                   # composants UI
 │  │  ├─ Toolbar.tsx        # ouvrir / exporter GPX + sélecteur de fond
-│  │  └─ BasemapSelector.tsx
-│  └─ offline/              # MBTiles, téléchargement de zones (Phase 2)
-└─ src-tauri/               # backend Rust (minimal)
+│  │  ├─ BasemapSelector.tsx
+│  │  └─ OfflinePanel.tsx   # téléchargement de zone + indicateur online/offline
+│  └─ offline/              # cache offline
+│     └─ tiles-api.ts       # pont vers les commandes Rust (download/offline/stats)
+└─ src-tauri/               # backend Rust (capacités natives)
    ├─ Cargo.toml · build.rs · tauri.conf.json
    ├─ capabilities/ · icons/
-   └─ src/{main.rs, lib.rs}
+   └─ src/
+      ├─ lib.rs             # commandes + protocole tiles:// + état partagé
+      ├─ providers.rs       # table fournisseurs (URL/format)
+      ├─ mbtiles.rs         # cache SQLite (rusqlite)
+      ├─ tiles_protocol.rs  # handler tiles:// (MBTiles puis réseau)
+      └─ download.rs        # téléchargement de zone
 ```
 
 ## Modèle de données
@@ -91,7 +100,25 @@ Attribution du fond actif affichée en permanence (conformité licence/CGU).
 - **OSM** standard : `tile.openstreetmap.org`, z0–19.
 - IGN via WMTS-KVP, TileMatrixSet `PM` (EPSG:3857, 256 px). Pas de WFS/WMS-V (évolution
   annoncée mi-2026). **SCAN25 différé** (clé privée, licence restrictive).
-- Le cache offline (MBTiles + protocole `tiles://`) arrive en Phase 2b.
+
+## Cache offline & flux des tuiles (Phase 2b)
+Sous Tauri, tous les fonds passent par le protocole custom
+`tiles://localhost/{layer}/{z}/{x}/{y}` (en dev navigateur : URLs directes).
+```
+MapLibre ─tiles://{layer}/{z}/{x}/{y}→ handler Rust (tiles_protocol)
+                                         │
+                       MBTiles présent ? ─oui→ tuile servie (offline OK)
+                                         └non→ mode hors-ligne ? ─oui→ tuile transparente
+                                                                  └non→ réseau (provider) → tuile
+Téléchargement : OfflinePanel → cmd Rust download_zone(layer, zooms, bbox)
+   → reqwest (throttlé, plafonné) → MBTiles ({appData}/tiles/{layer}.mbtiles)
+   → évènement download-progress → barre de progression.
+```
+- **Cache = téléchargements explicites uniquement** (la navigation ne remplit pas le cache).
+- **Mode hors-ligne** : drapeau `AtomicBool` côté Rust (cmd `set_offline`) ; le handler
+  ne tente plus le réseau. Indicateur UI = `navigator.onLine` + bascule manuelle.
+- Schéma MBTiles standard (SQLite), axe `y` en convention TMS (inversé).
+- **SCAN25** et un CSP strict restent pour plus tard (Phase 8).
 
 ## Backend Rust (src-tauri)
 Minimal (initialise Tauri + plugin opener). Accueillera : protocole custom `tiles://`
