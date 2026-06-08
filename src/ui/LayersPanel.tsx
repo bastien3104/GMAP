@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { Track } from "../core/model";
 import { useProjectStore } from "../store/project-store";
+import { useMapStore } from "../store/map-store";
 
 /**
  * Panneau de calques : gère les traces du projet (visibilité, couleur, nom, ordre,
@@ -13,6 +14,14 @@ export function LayersPanel(): ReactElement | null {
   const future = useProjectStore((s) => s.future);
   const undo = useProjectStore((s) => s.undo);
   const redo = useProjectStore((s) => s.redo);
+  const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
+  const editMode = useMapStore((s) => s.editMode);
+  const setEditMode = useMapStore((s) => s.setEditMode);
+
+  // Sortie auto du mode édition si plus aucune trace sélectionnée.
+  useEffect(() => {
+    if (selectedTrackId === null && editMode) setEditMode(false);
+  }, [selectedTrackId, editMode, setEditMode]);
 
   if (project === null) return null;
 
@@ -21,6 +30,15 @@ export function LayersPanel(): ReactElement | null {
       <div className="layers-header">
         <span>Calques ({project.tracks.length})</span>
         <span className="layers-actions">
+          <button
+            type="button"
+            className={editMode ? "edit-toggle active" : "edit-toggle"}
+            onClick={() => setEditMode(!editMode)}
+            disabled={selectedTrackId === null}
+            title="Éditer les points de la trace sélectionnée"
+          >
+            ✎
+          </button>
           <button
             type="button"
             onClick={undo}
@@ -39,6 +57,12 @@ export function LayersPanel(): ReactElement | null {
           </button>
         </span>
       </div>
+      {editMode && (
+        <p className="edit-hint">
+          Glisser un sommet · clic milieu = insérer · sommet puis Suppr = supprimer ·
+          Échap = quitter
+        </p>
+      )}
       {project.tracks.length === 0 ? (
         <p className="layers-empty">Aucune trace.</p>
       ) : (
