@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Test" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>Sortie test</name>
+  </metadata>
+  <wpt lat="45.9237" lon="6.8694">
+    <ele>1035</ele>
+    <name>Chamonix</name>
+    <sym>Flag</sym>
+  </wpt>
+  <wpt lat="45.8326" lon="6.8652">
+    <ele>3842</ele>
+    <name>Aiguille du Midi</name>
+    <desc>Sommet</desc>
+  </wpt>
+  <trk>
+    <name>Montée</name>
+    <trkseg>
+      <trkpt lat="45.9237" lon="6.8694">
+        <ele>1035</ele>
+        <time>2026-06-08T08:00:00Z</time>
+      </trkpt>
+      <trkpt lat="45.9100" lon="6.8700">
+        <ele>1500.5</ele>
+        <time>2026-06-08T09:00:00Z</time>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="45.8900" lon="6.8680">
+        <ele>2200</ele>
+      </trkpt>
+      <trkpt lat="45.8326" lon="6.8652">
+        <ele>3842</ele>
+      </trkpt>
+    </trkseg>
+  </trk>
+  <rte>
+    <name>Itinéraire retour</name>
+    <rtept lat="45.8326" lon="6.8652">
+      <ele>3842</ele>
+    </rtept>
+    <rtept lat="45.9237" lon="6.8694">
+      <ele>1035</ele>
+    </rtept>
+  </rte>
+</gpx>
