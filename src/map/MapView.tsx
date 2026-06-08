@@ -16,6 +16,7 @@ import {
   trackLineLayer,
   waypointCircleLayer,
 } from "./track-layers";
+import { setMapInstance } from "./map-ref";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
 import { projectBounds, projectToGeoJSON } from "../core/geojson/to-geojson";
@@ -73,7 +74,9 @@ export function MapView(): ReactElement {
     });
 
     mapRef.current = map;
+    setMapInstance(map);
     return () => {
+      setMapInstance(null);
       map.remove();
       mapRef.current = null;
       setMapReady(false);

@@ -98,3 +98,19 @@ export const DEFAULT_BASEMAP_ID = PLAN_IGN.id;
 export function getBasemap(id: string): RasterBasemap | undefined {
   return BASEMAPS.find((b) => b.id === id);
 }
+
+/**
+ * Base d'URL du protocole custom `tiles://` selon la plateforme.
+ * Tauri expose les schémas custom en `http://<scheme>.localhost` sous Windows/Android,
+ * et en `<scheme>://localhost` ailleurs.
+ */
+function tilesBaseUrl(): string {
+  const isWindows =
+    typeof navigator !== "undefined" && navigator.userAgent.includes("Windows");
+  return isWindows ? "http://tiles.localhost" : "tiles://localhost";
+}
+
+/** URL proxy d'un fond servie par le backend (cache MBTiles + réseau). */
+export function basemapProxyTilesUrl(basemapId: string): string {
+  return `${tilesBaseUrl()}/${basemapId}/{z}/{x}/{y}`;
+}

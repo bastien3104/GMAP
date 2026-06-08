@@ -3,7 +3,8 @@ import type {
   RasterSourceSpecification,
   StyleSpecification,
 } from "maplibre-gl";
-import type { RasterBasemap } from "./basemaps";
+import { isTauri } from "@tauri-apps/api/core";
+import { basemapProxyTilesUrl, type RasterBasemap } from "./basemaps";
 
 /** Identifiant de source MapLibre pour un fond. */
 export function basemapSourceId(basemapId: string): string {
@@ -15,13 +16,20 @@ export function basemapLayerId(basemapId: string): string {
   return `basemap-${basemapId}-layer`;
 }
 
-/** Spécification de source raster pour un fond. */
+/**
+ * Spécification de source raster pour un fond.
+ * Sous Tauri, les tuiles passent par le proxy `tiles://` (cache MBTiles + réseau) ;
+ * en dev navigateur, on garde les URLs directes du fournisseur.
+ */
 export function basemapRasterSource(
   basemap: RasterBasemap,
 ): RasterSourceSpecification {
+  const tiles = isTauri()
+    ? [basemapProxyTilesUrl(basemap.id)]
+    : [...basemap.tiles];
   return {
     type: "raster",
-    tiles: [...basemap.tiles],
+    tiles,
     tileSize: basemap.tileSize,
     maxzoom: basemap.maxzoom,
     attribution: basemap.attribution,
