@@ -8,6 +8,7 @@ import {
   setTrackVisibility as opSetTrackVisibility,
 } from "../core/edit/track-ops";
 import { addTrack as opAddTrack } from "../core/edit/draw-ops";
+import { withElevations } from "../core/elevation/elevation-client";
 
 /**
  * Store du projet courant avec historique undo/redo centralisé.
@@ -40,6 +41,8 @@ interface ProjectState {
   selectTrack: (id: string | null) => void;
   /** Ajoute une trace (crée un projet si aucun) et la sélectionne. */
   addTrack: (track: Track) => void;
+  /** Remplace les altitudes des points d'une trace (ordre aplati). */
+  setTrackElevations: (trackId: string, elevations: number[]) => void;
 
   renameTrack: (id: string, name: string) => void;
   setTrackColor: (id: string, color: string) => void;
@@ -104,6 +107,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     get().applyEdit((p) => opAddTrack(p, track));
     set({ selectedTrackId: track.id });
   },
+
+  setTrackElevations: (trackId, elevations) =>
+    get().applyEdit((p) => ({
+      ...p,
+      tracks: p.tracks.map((t) =>
+        t.id === trackId ? withElevations(t, elevations) : t,
+      ),
+    })),
 
   renameTrack: (id, name) => get().applyEdit((p) => opRenameTrack(p, id, name)),
   setTrackColor: (id, color) => get().applyEdit((p) => opSetTrackColor(p, id, color)),
