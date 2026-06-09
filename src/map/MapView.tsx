@@ -34,7 +34,8 @@ import { setMapInstance } from "./map-ref";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
 import { deletePoint, insertPoint, movePoint } from "../core/edit/point-ops";
-import type { Project } from "../core/model";
+import { appendPoint, appendPoints } from "../core/edit/draw-ops";
+import { trackPointCount, type Project, type TrackPoint } from "../core/model";
 import { projectBounds, projectToGeoJSON } from "../core/geojson/to-geojson";
 
 /** Vue initiale : centre approximatif de la France métropolitaine. */
@@ -63,7 +64,10 @@ export function MapView(): ReactElement {
   const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
   const activeBasemapId = useMapStore((s) => s.activeBasemapId);
   const editMode = useMapStore((s) => s.editMode);
+  const drawMode = useMapStore((s) => s.drawMode);
+  const freehand = useMapStore((s) => s.freehand);
   const lastFittedProjectId = useRef<string | null>(null);
+  const wasDrawing = useRef(false);
   const selectedVertexRef = useRef<SelectedVertex | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const rebuildHandlesRef = useRef<(() => void) | null>(null);
@@ -335,6 +339,99 @@ export function MapView(): ReactElement {
     if (!editMode) return;
     rebuildHandlesRef.current?.();
   }, [project, editMode]);
+
+  // Mode dessin : clic = ajout de point ; freehand = glisser (preview + commit unique).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null || !mapReady || !drawMode || selectedTrackId === null) return;
+
+    map.getCanvas().style.cursor = "crosshair";
+    const setData = (data: FeatureCollection): void => {
+      (map.getSource(PROJECT_SOURCE_ID) as maplibregl.GeoJSONSource | undefined)?.setData(data);
+    };
+
+    let stroke: TrackPoint[] | null = null;
+    let lastScreen: maplibregl.Point | null = null;
+    const THRESHOLD_PX = 6;
+
+    const onClick = (e: MapMouseEvent): void => {
+      if (useMapStore.getState().freehand) return; // freehand géré au glissement
+      const trackId = useProjectStore.getState().selectedTrackId;
+      if (trackId === null) return;
+      const { lng, lat } = e.lngLat;
+      useProjectStore
+        .getState()
+        .applyEdit((p) => appendPoint(p, trackId, { lon: lng, lat }));
+    };
+
+    const onDown = (e: MapMouseEvent): void => {
+      if (!useMapStore.getState().freehand) return;
+      e.preventDefault();
+      map.dragPan.disable();
+      stroke = [{ lon: e.lngLat.lng, lat: e.lngLat.lat }];
+      lastScreen = e.point;
+    };
+
+    const onMove = (e: MapMouseEvent): void => {
+      if (stroke === null) return;
+      const distance =
+        lastScreen === null
+          ? Infinity
+          : Math.hypot(e.point.x - lastScreen.x, e.point.y - lastScreen.y);
+      if (distance < THRESHOLD_PX) return;
+      stroke.push({ lon: e.lngLat.lng, lat: e.lngLat.lat });
+      lastScreen = e.point;
+      const base = useProjectStore.getState().project;
+      const trackId = useProjectStore.getState().selectedTrackId;
+      if (base !== null && trackId !== null) {
+        setData(projectToGeoJSON(appendPoints(base, trackId, stroke), trackId));
+      }
+    };
+
+    const onUp = (): void => {
+      if (stroke === null) return;
+      const points = stroke;
+      stroke = null;
+      lastScreen = null;
+      map.dragPan.enable();
+      const trackId = useProjectStore.getState().selectedTrackId;
+      if (trackId !== null && points.length > 0) {
+        useProjectStore.getState().applyEdit((p) => appendPoints(p, trackId, points));
+      }
+    };
+
+    const onKeyDown = (ev: KeyboardEvent): void => {
+      if (ev.key === "Escape") useMapStore.getState().setDrawMode(false);
+    };
+
+    map.on("click", onClick);
+    map.on("mousedown", onDown);
+    map.on("mousemove", onMove);
+    map.on("mouseup", onUp);
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      map.off("click", onClick);
+      map.off("mousedown", onDown);
+      map.off("mousemove", onMove);
+      map.off("mouseup", onUp);
+      window.removeEventListener("keydown", onKeyDown);
+      map.dragPan.enable();
+      map.getCanvas().style.cursor = "";
+    };
+  }, [drawMode, selectedTrackId, mapReady, freehand]);
+
+  // À la sortie du mode dessin, retire la trace si elle est restée vide.
+  useEffect(() => {
+    if (wasDrawing.current && !drawMode) {
+      const st = useProjectStore.getState();
+      const track = st.project?.tracks.find((t) => t.id === st.selectedTrackId);
+      if (track !== undefined && trackPointCount(track) === 0) {
+        st.deleteTrack(track.id);
+      }
+    }
+    wasDrawing.current = drawMode;
+  }, [drawMode]);
 
   return <div ref={containerRef} className="map-root" />;
 }

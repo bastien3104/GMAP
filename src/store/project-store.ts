@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Project } from "../core/model";
+import { createEmptyProject, type Project, type Track } from "../core/model";
 import {
   moveTrack as opMoveTrack,
   removeTrack as opRemoveTrack,
@@ -7,6 +7,7 @@ import {
   setTrackColor as opSetTrackColor,
   setTrackVisibility as opSetTrackVisibility,
 } from "../core/edit/track-ops";
+import { addTrack as opAddTrack } from "../core/edit/draw-ops";
 
 /**
  * Store du projet courant avec historique undo/redo centralisé.
@@ -37,6 +38,8 @@ interface ProjectState {
   redo: () => void;
   /** Sélectionne une trace (ou désélectionne avec `null`). */
   selectTrack: (id: string | null) => void;
+  /** Ajoute une trace (crée un projet si aucun) et la sélectionne. */
+  addTrack: (track: Track) => void;
 
   renameTrack: (id: string, name: string) => void;
   setTrackColor: (id: string, color: string) => void;
@@ -85,6 +88,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   selectTrack: (id) => set({ selectedTrackId: id }),
+
+  addTrack: (track) => {
+    const { project } = get();
+    if (project === null) {
+      const base = createEmptyProject();
+      set({
+        project: { ...base, tracks: [track] },
+        past: [],
+        future: [],
+        selectedTrackId: track.id,
+      });
+      return;
+    }
+    get().applyEdit((p) => opAddTrack(p, track));
+    set({ selectedTrackId: track.id });
+  },
 
   renameTrack: (id, name) => get().applyEdit((p) => opRenameTrack(p, id, name)),
   setTrackColor: (id, color) => get().applyEdit((p) => opSetTrackColor(p, id, color)),
