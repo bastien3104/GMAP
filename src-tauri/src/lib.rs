@@ -4,6 +4,7 @@
 mod download;
 mod mbtiles;
 mod providers;
+mod routing;
 mod tiles_protocol;
 
 use std::fs;
@@ -62,7 +63,8 @@ pub fn run() {
             save_text_file,
             set_offline,
             cache_stats,
-            download::download_zone
+            download::download_zone,
+            routing::route_online
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
