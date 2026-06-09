@@ -5,7 +5,9 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { GpxParseError, parseGpx } from "../core/gpx/parse-gpx";
 import { buildGpx } from "../core/gpx/build-gpx";
 import { trackPointCount } from "../core/model";
+import { createDrawingTrack } from "../core/edit/draw-ops";
 import { useProjectStore } from "../store/project-store";
+import { useMapStore } from "../store/map-store";
 import { BasemapSelector } from "./BasemapSelector";
 
 /**
@@ -20,8 +22,22 @@ export function Toolbar(): ReactElement {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const project = useProjectStore((s) => s.project);
   const loadProject = useProjectStore((s) => s.loadProject);
+  const addTrack = useProjectStore((s) => s.addTrack);
+  const drawMode = useMapStore((s) => s.drawMode);
+  const setDrawMode = useMapStore((s) => s.setDrawMode);
+  const freehand = useMapStore((s) => s.freehand);
+  const setFreehand = useMapStore((s) => s.setFreehand);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+
+  function toggleDraw(): void {
+    if (drawMode) {
+      setDrawMode(false);
+    } else {
+      addTrack(createDrawingTrack());
+      setDrawMode(true);
+    }
+  }
 
   async function importFile(file: File): Promise<void> {
     setError(null);
@@ -105,6 +121,29 @@ export function Toolbar(): ReactElement {
       >
         Exporter GPX
       </button>
+      <button
+        type="button"
+        className={drawMode ? "draw-toggle active" : "draw-toggle"}
+        onClick={toggleDraw}
+        title="Dessiner une nouvelle trace"
+      >
+        ✏ Dessiner
+      </button>
+      {drawMode && (
+        <label className="draw-freehand" title="Tracé continu à la souris">
+          <input
+            type="checkbox"
+            checked={freehand}
+            onChange={(e) => setFreehand(e.currentTarget.checked)}
+          />
+          freehand
+        </label>
+      )}
+      {drawMode && (
+        <span className="toolbar-hint">
+          {freehand ? "Glisser pour tracer" : "Cliquer pour ajouter des points"} · Échap = terminer
+        </span>
+      )}
 
       {project !== null && (
         <span className="toolbar-info">

@@ -84,6 +84,21 @@ body {
   cursor: not-allowed;
 }
 
+.toolbar .draw-toggle.active {
+  background: #2d6a4f;
+  border-color: #2d6a4f;
+  color: #fff;
+}
+.draw-freehand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.toolbar-hint {
+  color: #555;
+  font-style: italic;
+}
+
 .toolbar-info {
   color: #333;
 }
