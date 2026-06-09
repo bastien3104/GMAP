@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { DEFAULT_BASEMAP_ID } from "../map/basemaps";
 import { setOfflineBackend } from "../offline/tiles-api";
+import type { RoutingProfile } from "../core/routing/itinerary";
 
 /**
  * Store de l'état de la carte (distinct du projet) : fond actif et mode hors-ligne.
@@ -26,6 +27,18 @@ interface MapState {
   freehand: boolean;
   /** Active/désactive le freehand. */
   setFreehand: (freehand: boolean) => void;
+  /** Mode « suivre les sentiers » (snap-to-path entre deux clics). */
+  routing: boolean;
+  /** Active/désactive le snap-to-path. */
+  setRouting: (routing: boolean) => void;
+  /** Profil de routage online. */
+  routingProfile: RoutingProfile;
+  /** Change le profil de routage. */
+  setRoutingProfile: (profile: RoutingProfile) => void;
+  /** Routage en cours (calcul d'un segment). */
+  routingBusy: boolean;
+  /** Met à jour l'indicateur d'occupation du routage. */
+  setRoutingBusy: (busy: boolean) => void;
 }
 
 export const useMapStore = create<MapState>((set, get) => ({
@@ -44,4 +57,10 @@ export const useMapStore = create<MapState>((set, get) => ({
   setDrawMode: (drawMode) => set({ drawMode, editMode: drawMode ? false : get().editMode }),
   freehand: false,
   setFreehand: (freehand) => set({ freehand }),
+  routing: false,
+  setRouting: (routing) => set({ routing }),
+  routingProfile: "pedestrian",
+  setRoutingProfile: (routingProfile) => set({ routingProfile }),
+  routingBusy: false,
+  setRoutingBusy: (routingBusy) => set({ routingBusy }),
 }));

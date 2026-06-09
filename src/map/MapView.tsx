@@ -35,6 +35,7 @@ import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
 import { deletePoint, insertPoint, movePoint } from "../core/edit/point-ops";
 import { appendPoint, appendPoints } from "../core/edit/draw-ops";
+import { routeSegment } from "../core/routing/itinerary";
 import { trackPointCount, type Project, type TrackPoint } from "../core/model";
 import { projectBounds, projectToGeoJSON } from "../core/geojson/to-geojson";
 
@@ -68,6 +69,7 @@ export function MapView(): ReactElement {
   const freehand = useMapStore((s) => s.freehand);
   const lastFittedProjectId = useRef<string | null>(null);
   const wasDrawing = useRef(false);
+  const lastAnchorRef = useRef<[number, number] | null>(null);
   const selectedVertexRef = useRef<SelectedVertex | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const rebuildHandlesRef = useRef<(() => void) | null>(null);
@@ -346,6 +348,7 @@ export function MapView(): ReactElement {
     if (map === null || !mapReady || !drawMode || selectedTrackId === null) return;
 
     map.getCanvas().style.cursor = "crosshair";
+    lastAnchorRef.current = null;
     const setData = (data: FeatureCollection): void => {
       (map.getSource(PROJECT_SOURCE_ID) as maplibregl.GeoJSONSource | undefined)?.setData(data);
     };
@@ -354,14 +357,48 @@ export function MapView(): ReactElement {
     let lastScreen: maplibregl.Point | null = null;
     const THRESHOLD_PX = 6;
 
+    // Routage online d'un segment ancre→clic, puis ajout des points routés.
+    const routeBetween = async (
+      trackId: string,
+      from: [number, number],
+      to: [number, number],
+    ): Promise<void> => {
+      const mapStore = useMapStore.getState();
+      mapStore.setRoutingBusy(true);
+      try {
+        const segment = await routeSegment(mapStore.routingProfile, from, to);
+        // On retire le 1er point (doublon de l'ancre précédente).
+        const points = segment.points.slice(1);
+        const toAppend = points.length > 0 ? points : [{ lon: to[0], lat: to[1] }];
+        useProjectStore.getState().applyEdit((p) => appendPoints(p, trackId, toAppend));
+      } catch {
+        // Dégradation gracieuse : segment droit.
+        useProjectStore
+          .getState()
+          .applyEdit((p) => appendPoints(p, trackId, [{ lon: to[0], lat: to[1] }]));
+      } finally {
+        lastAnchorRef.current = to;
+        useMapStore.getState().setRoutingBusy(false);
+      }
+    };
+
     const onClick = (e: MapMouseEvent): void => {
-      if (useMapStore.getState().freehand) return; // freehand géré au glissement
+      const store = useMapStore.getState();
+      if (store.freehand) return; // freehand géré au glissement
       const trackId = useProjectStore.getState().selectedTrackId;
       if (trackId === null) return;
-      const { lng, lat } = e.lngLat;
-      useProjectStore
-        .getState()
-        .applyEdit((p) => appendPoint(p, trackId, { lon: lng, lat }));
+      const click: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+
+      if (!store.routing || lastAnchorRef.current === null) {
+        // Premier point, ou mode point par point : ajout direct.
+        useProjectStore
+          .getState()
+          .applyEdit((p) => appendPoint(p, trackId, { lon: click[0], lat: click[1] }));
+        lastAnchorRef.current = click;
+        return;
+      }
+      if (store.routingBusy) return; // évite le chevauchement des requêtes
+      void routeBetween(trackId, lastAnchorRef.current, click);
     };
 
     const onDown = (e: MapMouseEvent): void => {
