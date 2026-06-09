@@ -8,6 +8,12 @@ import {
   setTrackVisibility as opSetTrackVisibility,
 } from "../core/edit/track-ops";
 import { addTrack as opAddTrack } from "../core/edit/draw-ops";
+import {
+  convertTrackKind as opConvertKind,
+  mergeTracks as opMergeTracks,
+  reverseTrack as opReverseTrack,
+  splitTrackByDistance as opSplitTrack,
+} from "../core/edit/transform-ops";
 import { withElevations } from "../core/elevation/elevation-client";
 
 /**
@@ -49,6 +55,14 @@ interface ProjectState {
   toggleTrackVisibility: (id: string) => void;
   moveTrack: (id: string, direction: "up" | "down") => void;
   deleteTrack: (id: string) => void;
+  /** Inverse le sens d'une trace. */
+  reverseTrack: (id: string) => void;
+  /** Convertit une trace en route ou inversement. */
+  convertTrackKind: (id: string) => void;
+  /** Fusionne les traces visibles en une seule. */
+  mergeVisibleTracks: () => void;
+  /** Découpe une trace en morceaux tous les `intervalM` mètres. */
+  splitTrack: (id: string, intervalM: number) => void;
 }
 
 /** Profondeur maximale de l'historique. */
@@ -127,5 +141,27 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   deleteTrack: (id) => {
     get().applyEdit((p) => opRemoveTrack(p, id));
     if (get().selectedTrackId === id) set({ selectedTrackId: null });
+  },
+
+  reverseTrack: (id) => get().applyEdit((p) => opReverseTrack(p, id)),
+  convertTrackKind: (id) => get().applyEdit((p) => opConvertKind(p, id)),
+  mergeVisibleTracks: () => {
+    const proj = get().project;
+    if (proj === null) return;
+    const ids = proj.tracks.filter((t) => t.visible).map((t) => t.id);
+    if (ids.length < 2) return;
+    get().applyEdit((p) => opMergeTracks(p, ids));
+    set({ selectedTrackId: ids[0] ?? null });
+  },
+  splitTrack: (id, intervalM) => {
+    const before = get().project;
+    if (before === null) return;
+    const index = before.tracks.findIndex((t) => t.id === id);
+    get().applyEdit((p) => opSplitTrack(p, id, intervalM));
+    const after = get().project;
+    if (after !== null && index >= 0) {
+      const piece = after.tracks[index];
+      if (piece !== undefined) set({ selectedTrackId: piece.id });
+    }
   },
 }));

@@ -14,6 +14,9 @@ interface UiState {
   /** Dialogue de téléchargement de zone ouvert. */
   downloadOpen: boolean;
   setDownloadOpen: (open: boolean) => void;
+  /** Dialogue de découpe par distance ouvert. */
+  splitOpen: boolean;
+  setSplitOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -23,4 +26,6 @@ export const useUiStore = create<UiState>((set) => ({
   toggleProfile: () => set((s) => ({ profileCollapsed: !s.profileCollapsed })),
   downloadOpen: false,
   setDownloadOpen: (downloadOpen) => set({ downloadOpen }),
+  splitOpen: false,
+  setSplitOpen: (splitOpen) => set({ splitOpen }),
 }));
