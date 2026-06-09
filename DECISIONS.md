@@ -161,3 +161,14 @@
   `map.resize()` au repli des panneaux.
 - Composants supprimés (répartis) : `Toolbar`, `OfflinePanel` (→ `DownloadDialog`),
   `BasemapSelector` (→ menu Carte). Aucun changement du cœur métier ni du Rust.
+
+## 2026-06-08 — Phase 6a (Transformations de traces)
+- **Opérations pures** `core/edit/transform-ops.ts` (testées) : `reverseTrack`,
+  `convertTrackKind` (track↔route, route = un segment aplati), `mergeTracks`,
+  `splitTrackByDistance` (morceaux contigus, point-frontière partagé). Toutes via
+  `applyEdit` → réversibles.
+- **Accès via menu Outils** : Inverser · Convertir en route/trace (libellé selon le kind) ·
+  Fusionner les traces visibles (< 2 visibles = désactivé) · Découper par distance…
+  (dialogue `SplitDialog`).
+- **Sélection** : fusion → trace fusionnée ; découpe → 1er morceau (repéré par l'index).
+- Nettoyage (Douglas-Peucker, lissage, pics d'altitude, découpe au point) = **Phase 6b**.

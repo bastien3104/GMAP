@@ -32,7 +32,7 @@ GMAP/
 │  ├─ core/                 # logique métier pure (testée, sans UI)
 │  │  ├─ model.ts           # types Project / Track / Waypoint / TrackPoint + helpers
 │  │  ├─ tiles/             # math de tuiles Web Mercator (+ tests)
-│  │  ├─ edit/              # opérations d'édition pures (track-ops, point-ops, draw-ops)
+│  │  ├─ edit/              # opérations pures (track-ops, point-ops, draw-ops, transform-ops)
 │  │  ├─ geo/               # stats (distance, D+/D-, pente) + Naismith (+ tests)
 │  │  ├─ elevation/         # client altimétrique online (+ tests)
 │  │  ├─ gpx/               # import/export GPX
