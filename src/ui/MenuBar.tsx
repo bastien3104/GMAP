@@ -25,6 +25,9 @@ export function MenuBar(): ReactElement {
   const future = useProjectStore((s) => s.future);
   const undo = useProjectStore((s) => s.undo);
   const redo = useProjectStore((s) => s.redo);
+  const reverseTrack = useProjectStore((s) => s.reverseTrack);
+  const convertTrackKind = useProjectStore((s) => s.convertTrackKind);
+  const mergeVisibleTracks = useProjectStore((s) => s.mergeVisibleTracks);
 
   const activeBasemapId = useMapStore((s) => s.activeBasemapId);
   const setBasemap = useMapStore((s) => s.setBasemap);
@@ -38,6 +41,7 @@ export function MenuBar(): ReactElement {
   const setDrawMode = useMapStore((s) => s.setDrawMode);
 
   const setDownloadOpen = useUiStore((s) => s.setDownloadOpen);
+  const setSplitOpen = useUiStore((s) => s.setSplitOpen);
 
   const [online, setOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true,
@@ -136,6 +140,8 @@ export function MenuBar(): ReactElement {
 
   const hasProject = project !== null;
   const hasSelection = selectedTrackId !== null;
+  const selectedTrack = project?.tracks.find((t) => t.id === selectedTrackId) ?? null;
+  const visibleCount = project?.tracks.filter((t) => t.visible).length ?? 0;
 
   return (
     <div className="menubar">
@@ -197,6 +203,31 @@ export function MenuBar(): ReactElement {
       </Menu>
 
       <Menu label="Outils">
+        <MenuItem
+          label="Inverser le sens"
+          onSelect={() => {
+            if (selectedTrackId !== null) reverseTrack(selectedTrackId);
+          }}
+          disabled={!hasSelection}
+        />
+        <MenuItem
+          label={selectedTrack?.kind === "route" ? "Convertir en trace" : "Convertir en route"}
+          onSelect={() => {
+            if (selectedTrackId !== null) convertTrackKind(selectedTrackId);
+          }}
+          disabled={!hasSelection}
+        />
+        <MenuItem
+          label="Fusionner les traces visibles"
+          onSelect={mergeVisibleTracks}
+          disabled={visibleCount < 2}
+        />
+        <MenuItem
+          label="Découper par distance…"
+          onSelect={() => setSplitOpen(true)}
+          disabled={!hasSelection}
+        />
+        <MenuSeparator />
         <MenuItem
           label="Corriger l'altitude"
           onSelect={() => void correctElevation()}

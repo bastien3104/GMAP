@@ -5,6 +5,7 @@ import { ContextBar } from "../ui/ContextBar";
 import { LayersPanel } from "../ui/LayersPanel";
 import { ProfilePanel } from "../ui/ProfilePanel";
 import { DownloadDialog } from "../ui/DownloadDialog";
+import { SplitDialog } from "../ui/SplitDialog";
 import { useEditorShortcuts } from "../ui/useEditorShortcuts";
 import "./app.css";
 
@@ -27,6 +28,7 @@ export function App(): ReactElement {
       </div>
       <ProfilePanel />
       <DownloadDialog />
+      <SplitDialog />
     </div>
   );
 }
