@@ -30,9 +30,16 @@ import {
   VERTICES_SOURCE_ID,
   type SelectedVertex,
 } from "./edit-layers";
+import {
+  HOVER_SOURCE_ID,
+  SLOPE_SOURCE_ID,
+  hoverPointLayer,
+  slopeLineLayer,
+} from "./slope-layers";
 import { setMapInstance } from "./map-ref";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
+import { slopeFeatureCollection } from "../core/geojson/slope-geojson";
 import { deletePoint, insertPoint, movePoint } from "../core/edit/point-ops";
 import { appendPoint, appendPoints } from "../core/edit/draw-ops";
 import { routeSegment } from "../core/routing/itinerary";
@@ -67,6 +74,8 @@ export function MapView(): ReactElement {
   const editMode = useMapStore((s) => s.editMode);
   const drawMode = useMapStore((s) => s.drawMode);
   const freehand = useMapStore((s) => s.freehand);
+  const slopeColoring = useMapStore((s) => s.slopeColoring);
+  const hoverPoint = useMapStore((s) => s.hoverPoint);
   const lastFittedProjectId = useRef<string | null>(null);
   const wasDrawing = useRef(false);
   const lastAnchorRef = useRef<[number, number] | null>(null);
@@ -87,9 +96,10 @@ export function MapView(): ReactElement {
       attributionControl: false,
     });
     map.addControl(new maplibregl.NavigationControl(), "top-right");
+    // Attribution en haut-droite (compacte) : reste visible au-dessus du dock profil.
     map.addControl(
-      new maplibregl.AttributionControl({ compact: false }),
-      "bottom-right",
+      new maplibregl.AttributionControl({ compact: true }),
+      "top-right",
     );
 
     map.on("load", () => {
@@ -100,7 +110,11 @@ export function MapView(): ReactElement {
       }
       map.addSource(PROJECT_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
       map.addLayer(trackLineLayer);
+      map.addSource(SLOPE_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
+      map.addLayer(slopeLineLayer);
       map.addLayer(waypointCircleLayer);
+      map.addSource(HOVER_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
+      map.addLayer(hoverPointLayer);
       setMapReady(true);
     });
 
@@ -156,6 +170,41 @@ export function MapView(): ReactElement {
       }
     }
   }, [project, selectedTrackId, mapReady]);
+
+  // Coloration par pente de la trace sélectionnée.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null || !mapReady) return;
+    const source = map.getSource(SLOPE_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    if (source === undefined) return;
+    const track =
+      slopeColoring && selectedTrackId !== null
+        ? project?.tracks.find((t) => t.id === selectedTrackId)
+        : undefined;
+    source.setData(track !== undefined ? slopeFeatureCollection(track) : EMPTY_DATA);
+  }, [slopeColoring, selectedTrackId, project, mapReady]);
+
+  // Marqueur de survol (synchronisé avec le profil).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null || !mapReady) return;
+    const source = map.getSource(HOVER_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    if (source === undefined) return;
+    const data: FeatureCollection =
+      hoverPoint === null
+        ? EMPTY_DATA
+        : {
+            type: "FeatureCollection",
+            features: [
+              {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: hoverPoint },
+                properties: {},
+              },
+            ],
+          };
+    source.setData(data);
+  }, [hoverPoint, mapReady]);
 
   // Mode édition : poignées (sommets + milieux), déplacement, insertion, suppression.
   useEffect(() => {

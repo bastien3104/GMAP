@@ -39,6 +39,14 @@ interface MapState {
   routingBusy: boolean;
   /** Met à jour l'indicateur d'occupation du routage. */
   setRoutingBusy: (busy: boolean) => void;
+  /** Coloration du tracé sélectionné par pente. */
+  slopeColoring: boolean;
+  /** Active/désactive la coloration par pente. */
+  setSlopeColoring: (on: boolean) => void;
+  /** Position survolée sur le profil (marqueur carte), ou `null`. */
+  hoverPoint: [number, number] | null;
+  /** Met à jour le point de survol. */
+  setHoverPoint: (point: [number, number] | null) => void;
 }
 
 export const useMapStore = create<MapState>((set, get) => ({
@@ -63,4 +71,8 @@ export const useMapStore = create<MapState>((set, get) => ({
   setRoutingProfile: (routingProfile) => set({ routingProfile }),
   routingBusy: false,
   setRoutingBusy: (routingBusy) => set({ routingBusy }),
+  slopeColoring: false,
+  setSlopeColoring: (slopeColoring) => set({ slopeColoring }),
+  hoverPoint: null,
+  setHoverPoint: (hoverPoint) => set({ hoverPoint }),
 }));
