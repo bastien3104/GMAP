@@ -114,3 +114,15 @@
   `appendPoint`/`appendPoints`).
 - **Trace vide retirée** à la sortie du mode (évite les calques fantômes).
 - Routing (snap-to-path BRouter + Géoplateforme) = **Phase 4b**.
+
+## 2026-06-08 — Phase 4b-i (Routing online Géoplateforme)
+- **Routing scindé** : 4b-i online (Géoplateforme, sans installation) puis 4b-ii offline
+  (BRouter prioritaire). Résultat final conforme au prompt (BRouter d'abord), livré dans
+  l'ordre inverse pour la testabilité.
+- **Appel HTTP côté Rust** (`route_online`, réutilise `reqwest`) → évite le CORS webview ;
+  repli `fetch` direct hors Tauri.
+- **Parsing en TS pur testé** (`core/routing/itinerary.ts`) : la commande Rust renvoie le
+  JSON brut, `parseItineraryResponse` en extrait points/distance/durée.
+- **Snap-to-path** = segments routés entre clics (ancres), ajoutés via `applyEdit`
+  (réversibles) ; échec → segment droit. Profils online : pedestrian/car.
+- **Recalcul au déplacement d'ancre** et profils hiking/trekking/vélo = **4b-ii** (BRouter).

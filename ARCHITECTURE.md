@@ -41,7 +41,7 @@ GMAP/
 │  │  │  ├─ to-geojson.ts
 │  │  │  └─ to-geojson.test.ts
 │  │  ├─ geo/               # stats, simplification, lissage (Phase 5/6)
-│  │  ├─ routing/           # BRouter offline + Géoplateforme (Phase 4)
+│  │  ├─ routing/           # client itinéraire (Géoplateforme online) (+ BRouter en 4b-ii)
 │  │  └─ elevation/         # altitude API + MNT (Phase 5)
 │  ├─ store/                # Zustand
 │  │  ├─ project-store.ts   # projet courant + historique undo/redo + sélection
@@ -62,7 +62,8 @@ GMAP/
       ├─ providers.rs       # table fournisseurs (URL/format)
       ├─ mbtiles.rs         # cache SQLite (rusqlite)
       ├─ tiles_protocol.rs  # handler tiles:// (MBTiles puis réseau)
-      └─ download.rs        # téléchargement de zone
+      ├─ download.rs        # téléchargement de zone
+      └─ routing.rs         # commande route_online (Géoplateforme)
 ```
 
 ## Modèle de données
@@ -93,6 +94,13 @@ au relâchement ; clic sur un milieu insère un point ; sommet sélectionné + S
 nouvelle trace (via `core/edit/draw-ops`) et la sélectionne ; clic = ajout d'un point
 (point par point), ou **freehand** = glisser (échantillonné, preview live, commit unique).
 Une trace restée vide est retirée à la sortie. Échap termine.
+
+**Snap-to-path online** (`map-store.routing`, Phase 4b-i) : en mode dessin + « suivre les
+sentiers », chaque clic est une ancre ; le segment ancre→clic est routé par l'API
+itinéraire Géoplateforme. L'appel HTTP passe par la commande Rust `route_online` (réutilise
+`reqwest`, évite le CORS) ; le parsing est en TS pur testé (`core/routing/itinerary.ts`).
+Échec réseau → segment droit (dégradation gracieuse). Le moteur offline **BRouter**
+(prioritaire) viendra en 4b-ii.
 
 ## Flux de données
 ```
