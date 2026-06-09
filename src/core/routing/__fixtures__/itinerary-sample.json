@@ -1,0 +1,23 @@
+{
+  "resource": "bdtopo-osrm",
+  "resourceVersion": "1.0",
+  "start": "6.0,45.0",
+  "end": "6.05,45.05",
+  "profile": "pedestrian",
+  "optimization": "shortest",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [6.0, 45.0],
+      [6.012, 45.011],
+      [6.031, 45.027],
+      [6.05, 45.05]
+    ]
+  },
+  "crs": "EPSG:4326",
+  "distanceUnit": "meter",
+  "timeUnit": "second",
+  "distance": 8421.3,
+  "duration": 6300.5,
+  "bbox": [6.0, 45.0, 6.05, 45.05]
+}
