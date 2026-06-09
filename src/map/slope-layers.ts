@@ -20,6 +20,17 @@ export const SLOPE_LEGEND: ReadonlyArray<{ label: string; color: string }> = [
   { label: "> 40 %", color: "#a50026" },
 ];
 
+/** Couleur d'une pente (% signé) selon le même gradient que la légende. */
+export function slopeColor(slopePercent: number): string {
+  const a = Math.abs(slopePercent);
+  if (a < 5) return "#1a9850";
+  if (a < 10) return "#a6d96a";
+  if (a < 15) return "#fee08b";
+  if (a < 25) return "#fdae61";
+  if (a < 40) return "#f46d43";
+  return "#a50026";
+}
+
 /** Couche ligne colorée par pente absolue (expression `step`). */
 export const slopeLineLayer: LineLayerSpecification = {
   id: SLOPE_LAYER_ID,

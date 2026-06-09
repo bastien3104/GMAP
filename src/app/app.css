@@ -368,6 +368,63 @@ body {
   color: #777;
   font-style: italic;
 }
+.profile-stat.ascent {
+  color: #1b7f3b;
+}
+.profile-stat.descent {
+  color: #c0561e;
+}
+
+/* ===== Graphe de profil ===== */
+.elev-chart {
+  position: relative;
+  margin-top: 4px;
+}
+.elev-svg {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+}
+.elev-grid {
+  stroke: rgba(0, 0, 0, 0.08);
+  stroke-width: 1;
+}
+.elev-label {
+  fill: #999;
+  font-size: 10px;
+}
+.elev-cursor {
+  stroke: #999;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.elev-dot {
+  fill: #0077b6;
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.elev-tooltip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 9px;
+  background: rgba(20, 20, 24, 0.82);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 11.5px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.elev-tooltip strong {
+  font-size: 13px;
+}
+.elev-tooltip span {
+  opacity: 0.85;
+}
 
 /* ===== Dialogue modal ===== */
 .dialog-overlay {
@@ -518,5 +575,11 @@ body {
   }
   .profile-stat {
     color: #ccc;
+  }
+  .elev-grid {
+    stroke: rgba(255, 255, 255, 0.1);
+  }
+  .elev-label {
+    fill: #999;
   }
 }
