@@ -104,3 +104,13 @@
 - **Opérations de points pures** (`core/edit/point-ops.ts`), `mapSegment` renvoie le même
   projet si rien ne change (pas d'entrée d'historique vide).
 - Table des points éditable + sélection multiple repoussées en **Phase 3c**.
+
+## 2026-06-08 — Phase 4a (Mode dessin)
+- **Mode dessin explicite** (`map-store.drawMode`), exclusif du mode édition. « Dessiner »
+  crée une nouvelle trace (et un projet si aucun) et la sélectionne.
+- **Point par point** = 1 clic → 1 point → 1 entrée d'historique ; **freehand** = glisser
+  échantillonné (seuil écran) avec preview live et **commit unique** au relâchement.
+- **Opérations pures** `core/edit/draw-ops.ts` (`createDrawingTrack`, `addTrack`,
+  `appendPoint`/`appendPoints`).
+- **Trace vide retirée** à la sortie du mode (évite les calques fantômes).
+- Routing (snap-to-path BRouter + Géoplateforme) = **Phase 4b**.

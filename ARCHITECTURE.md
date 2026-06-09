@@ -89,6 +89,11 @@ jour la géométrie en direct (sans toucher au store) et commite **une** entrée
 au relâchement ; clic sur un milieu insère un point ; sommet sélectionné + Suppr supprime ;
 Échap quitte le mode.
 
+**Mode dessin** (`map-store.drawMode`, exclusif de l'édition) : « Dessiner » crée une
+nouvelle trace (via `core/edit/draw-ops`) et la sélectionne ; clic = ajout d'un point
+(point par point), ou **freehand** = glisser (échantillonné, preview live, commit unique).
+Une trace restée vide est retirée à la sortie. Échap termine.
+
 ## Flux de données
 ```
 Fichier GPX ──parseGpx──▶ Modèle (core/model) ──▶ Store Zustand (project-store)
