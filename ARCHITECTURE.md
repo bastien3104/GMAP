@@ -46,14 +46,16 @@ GMAP/
 │  │  └─ routing/           # client itinéraire (Géoplateforme online) (+ BRouter en 4b-ii)
 │  ├─ store/                # Zustand
 │  │  ├─ project-store.ts   # projet courant + historique undo/redo + sélection
-│  │  └─ map-store.ts       # état carte (fond actif, hors-ligne)
+│  │  ├─ map-store.ts       # état carte (fond, hors-ligne, modes, coloration, survol)
+│  │  └─ ui-store.ts        # agencement UI (calques repliés, profil replié, dialogues)
 │  ├─ ui/                   # composants UI
-│  │  ├─ Toolbar.tsx        # ouvrir / exporter GPX + sélecteur de fond
-│  │  ├─ BasemapSelector.tsx
-│  │  ├─ LayersPanel.tsx    # calques : visibilité/couleur/nom/ordre/suppr + annuler/rétablir + Éditer
-│  │  ├─ ProfilePanel.tsx   # dock bas : stats + Naismith + correction alt. + coloration pente + profil SVG
-│  │  ├─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
-│  │  └─ OfflinePanel.tsx   # téléchargement de zone + indicateur online/offline
+│  │  ├─ Menu.tsx           # primitive de menu déroulant
+│  │  ├─ MenuBar.tsx        # barre Fichier/Édition/Carte/Outils + indicateur réseau
+│  │  ├─ ContextBar.tsx     # sous-barre contextuelle (Dessin / Édition)
+│  │  ├─ LayersPanel.tsx    # dock gauche rétractable : calques (visibilité/couleur/nom/ordre/suppr)
+│  │  ├─ ProfilePanel.tsx   # dock bas repliable : stats + Naismith + profil SVG interactif
+│  │  ├─ DownloadDialog.tsx # dialogue de téléchargement de zone offline
+│  │  └─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
 │  └─ offline/              # cache offline
 │     └─ tiles-api.ts       # pont vers les commandes Rust (download/offline/stats)
 └─ src-tauri/               # backend Rust (capacités natives)
@@ -68,6 +70,15 @@ GMAP/
       ├─ routing.rs         # commande route_online (Géoplateforme)
       └─ elevation.rs       # commande elevation_online (altimétrie)
 ```
+
+## Interface (régions ancrées)
+Layout en colonnes flex (plus d'encarts flottants) : **barre de menus** (Fichier ▾ ·
+Édition · Carte ▾ · Outils ▾ + indicateur réseau), **sous-barre contextuelle** (visible
+en mode Dessin/Édition), rangée **[Calques (gauche, rétractable) | carte]**, **dock profil**
+(bas, repliable). Trois types de boutons : ① persistant (barre), ② contextuel (sous-barre /
+panneaux selon mode/sélection), ③ menu Outils (actions ponctuelles : corriger l'altitude,
+télécharger une zone…). `MapView` redimensionne la carte (`ResizeObserver`) quand les
+panneaux se replient. État d'agencement dans `ui-store`.
 
 ## Modèle de données
 Source de vérité : `src/core/model.ts`.

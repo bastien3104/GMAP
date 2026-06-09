@@ -149,3 +149,15 @@
   pleine largeur) regroupant stats + Naismith + correction d'altitude + coloration + profil.
 - **Conformité attribution** : déplacée en haut-droite (compacte) pour rester visible
   au-dessus du dock profil.
+
+## 2026-06-08 — Refonte UI (barre de menus + interface ancrée)
+- **Interface ancrée** (fin des encarts flottants qui se chevauchaient) : barre de menus
+  déroulants style Word (Fichier/Édition/Carte/Outils), sous-barre contextuelle, Calques
+  ancré à gauche (rétractable), profil ancré en bas (repliable).
+- **3 types de boutons** : ① persistant (barre) · ② contextuel (sous-barre/panneaux) ·
+  ③ menu Outils (actions ponctuelles : corriger l'altitude, télécharger une zone…).
+- **Primitive `Menu`** (popover, fermeture clic-dehors/Échap). Nouveau **`ui-store`**
+  (calques/profil repliés, dialogue de téléchargement). `MapView` : `ResizeObserver` pour
+  `map.resize()` au repli des panneaux.
+- Composants supprimés (répartis) : `Toolbar`, `OfflinePanel` (→ `DownloadDialog`),
+  `BasemapSelector` (→ menu Carte). Aucun changement du cœur métier ni du Rust.
