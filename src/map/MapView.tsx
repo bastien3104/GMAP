@@ -36,6 +36,10 @@ import {
   hoverPointLayer,
   slopeLineLayer,
 } from "./slope-layers";
+import {
+  PREVIEW_SOURCE_ID,
+  previewLineLayer,
+} from "./preview-layer";
 import { setMapInstance } from "./map-ref";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
@@ -76,6 +80,7 @@ export function MapView(): ReactElement {
   const freehand = useMapStore((s) => s.freehand);
   const slopeColoring = useMapStore((s) => s.slopeColoring);
   const hoverPoint = useMapStore((s) => s.hoverPoint);
+  const previewData = useMapStore((s) => s.previewData);
   const lastFittedProjectId = useRef<string | null>(null);
   const wasDrawing = useRef(false);
   const lastAnchorRef = useRef<[number, number] | null>(null);
@@ -115,6 +120,8 @@ export function MapView(): ReactElement {
       map.addLayer(waypointCircleLayer);
       map.addSource(HOVER_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
       map.addLayer(hoverPointLayer);
+      map.addSource(PREVIEW_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
+      map.addLayer(previewLineLayer);
       setMapReady(true);
     });
 
@@ -188,6 +195,15 @@ export function MapView(): ReactElement {
         : undefined;
     source.setData(track !== undefined ? slopeFeatureCollection(track) : EMPTY_DATA);
   }, [slopeColoring, selectedTrackId, project, mapReady]);
+
+  // Aperçu des outils de nettoyage.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null || !mapReady) return;
+    const source = map.getSource(PREVIEW_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    if (source === undefined) return;
+    source.setData(previewData ?? EMPTY_DATA);
+  }, [previewData, mapReady]);
 
   // Marqueur de survol (synchronisé avec le profil).
   useEffect(() => {

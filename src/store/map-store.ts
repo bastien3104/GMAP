@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { FeatureCollection } from "geojson";
 import { DEFAULT_BASEMAP_ID } from "../map/basemaps";
 import { setOfflineBackend } from "../offline/tiles-api";
 import type { RoutingProfile } from "../core/routing/itinerary";
@@ -47,6 +48,10 @@ interface MapState {
   hoverPoint: [number, number] | null;
   /** Met à jour le point de survol. */
   setHoverPoint: (point: [number, number] | null) => void;
+  /** Aperçu (prévisualisation d'un outil de nettoyage), ou `null`. */
+  previewData: FeatureCollection | null;
+  /** Met à jour l'aperçu. */
+  setPreview: (data: FeatureCollection | null) => void;
 }
 
 export const useMapStore = create<MapState>((set, get) => ({
@@ -75,4 +80,6 @@ export const useMapStore = create<MapState>((set, get) => ({
   setSlopeColoring: (slopeColoring) => set({ slopeColoring }),
   hoverPoint: null,
   setHoverPoint: (hoverPoint) => set({ hoverPoint }),
+  previewData: null,
+  setPreview: (previewData) => set({ previewData }),
 }));
