@@ -2,6 +2,7 @@
 // tiles://). Pas de logique métier dupliquée : elle vit côté frontend (src/core, src/store).
 
 mod download;
+mod elevation;
 mod mbtiles;
 mod providers;
 mod routing;
@@ -64,7 +65,8 @@ pub fn run() {
             set_offline,
             cache_stats,
             download::download_zone,
-            routing::route_online
+            routing::route_online,
+            elevation::elevation_online
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

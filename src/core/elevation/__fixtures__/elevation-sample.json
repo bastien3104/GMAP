@@ -1,0 +1,7 @@
+{
+  "elevations": [
+    { "lon": 6.0, "lat": 45.0, "z": 1035.2, "acc": "Variable suivant la source de mesure" },
+    { "lon": 6.01, "lat": 45.01, "z": 1120.5, "acc": "Variable suivant la source de mesure" },
+    { "lon": 6.02, "lat": 45.02, "z": -99999.0, "acc": "Variable suivant la source de mesure" }
+  ]
+}
