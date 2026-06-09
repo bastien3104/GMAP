@@ -3,7 +3,7 @@ import { MapView } from "../map/MapView";
 import { Toolbar } from "../ui/Toolbar";
 import { LayersPanel } from "../ui/LayersPanel";
 import { OfflinePanel } from "../ui/OfflinePanel";
-import { StatsPanel } from "../ui/StatsPanel";
+import { ProfilePanel } from "../ui/ProfilePanel";
 import { useEditorShortcuts } from "../ui/useEditorShortcuts";
 import "./app.css";
 
@@ -21,7 +21,7 @@ export function App(): ReactElement {
       <MapView />
       <Toolbar />
       <LayersPanel />
-      <StatsPanel />
+      <ProfilePanel />
       <OfflinePanel />
     </div>
   );
