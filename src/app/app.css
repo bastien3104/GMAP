@@ -89,7 +89,8 @@ body {
   border-color: #2d6a4f;
   color: #fff;
 }
-.draw-freehand {
+.draw-freehand,
+.draw-routing {
   display: inline-flex;
   align-items: center;
   gap: 4px;

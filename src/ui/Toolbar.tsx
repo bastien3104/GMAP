@@ -6,6 +6,7 @@ import { GpxParseError, parseGpx } from "../core/gpx/parse-gpx";
 import { buildGpx } from "../core/gpx/build-gpx";
 import { trackPointCount } from "../core/model";
 import { createDrawingTrack } from "../core/edit/draw-ops";
+import type { RoutingProfile } from "../core/routing/itinerary";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
 import { BasemapSelector } from "./BasemapSelector";
@@ -27,6 +28,11 @@ export function Toolbar(): ReactElement {
   const setDrawMode = useMapStore((s) => s.setDrawMode);
   const freehand = useMapStore((s) => s.freehand);
   const setFreehand = useMapStore((s) => s.setFreehand);
+  const routing = useMapStore((s) => s.routing);
+  const setRouting = useMapStore((s) => s.setRouting);
+  const routingProfile = useMapStore((s) => s.routingProfile);
+  const setRoutingProfile = useMapStore((s) => s.setRoutingProfile);
+  const routingBusy = useMapStore((s) => s.routingBusy);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -134,14 +140,48 @@ export function Toolbar(): ReactElement {
           <input
             type="checkbox"
             checked={freehand}
-            onChange={(e) => setFreehand(e.currentTarget.checked)}
+            onChange={(e) => {
+              const on = e.currentTarget.checked;
+              setFreehand(on);
+              if (on) setRouting(false);
+            }}
           />
           freehand
         </label>
       )}
       {drawMode && (
+        <label className="draw-routing" title="Calculer l'itinéraire qui suit les chemins">
+          <input
+            type="checkbox"
+            checked={routing}
+            onChange={(e) => {
+              const on = e.currentTarget.checked;
+              setRouting(on);
+              if (on) setFreehand(false);
+            }}
+          />
+          suivre les sentiers
+        </label>
+      )}
+      {drawMode && routing && (
+        <select
+          value={routingProfile}
+          onChange={(e) => setRoutingProfile(e.currentTarget.value as RoutingProfile)}
+          title="Profil de routage"
+        >
+          <option value="pedestrian">à pied</option>
+          <option value="car">voiture</option>
+        </select>
+      )}
+      {drawMode && (
         <span className="toolbar-hint">
-          {freehand ? "Glisser pour tracer" : "Cliquer pour ajouter des points"} · Échap = terminer
+          {routingBusy
+            ? "calcul…"
+            : routing
+              ? "Cliquer les points d'ancrage · Échap = terminer"
+              : freehand
+                ? "Glisser pour tracer · Échap = terminer"
+                : "Cliquer pour ajouter des points · Échap = terminer"}
         </span>
       )}
 
