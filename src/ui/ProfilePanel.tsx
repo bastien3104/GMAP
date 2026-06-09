@@ -2,13 +2,12 @@ import { useMemo, useState } from "react";
 import type { PointerEvent, ReactElement } from "react";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
+import { useUiStore } from "../store/ui-store";
 import { trackStats } from "../core/geo/stats";
 import { naismithDuration } from "../core/geo/naismith";
 import { buildProfile, type ProfilePoint } from "../core/geo/profile";
-import { fetchElevations, trackCoords } from "../core/elevation/elevation-client";
 import { SLOPE_LEGEND } from "../map/slope-layers";
 
-/** Dimensions du graphe SVG (espace viewBox). */
 const W = 800;
 const H = 120;
 const PAD = { top: 8, right: 10, bottom: 18, left: 42 };
@@ -16,20 +15,19 @@ const INNER_W = W - PAD.left - PAD.right;
 const INNER_H = H - PAD.top - PAD.bottom;
 
 /**
- * Dock bas : statistiques de la trace sélectionnée, durée Naismith, correction
- * d'altitude, coloration par pente, et profil altimétrique interactif (survol ↔ carte).
+ * Dock bas repliable : statistiques de la trace sélectionnée, durée Naismith et profil
+ * altimétrique interactif (survol ↔ carte). La coloration par pente et la correction
+ * d'altitude sont dans la barre de menus (Carte / Outils).
  */
 export function ProfilePanel(): ReactElement | null {
   const project = useProjectStore((s) => s.project);
   const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
-  const setTrackElevations = useProjectStore((s) => s.setTrackElevations);
   const slopeColoring = useMapStore((s) => s.slopeColoring);
-  const setSlopeColoring = useMapStore((s) => s.setSlopeColoring);
   const setHoverPoint = useMapStore((s) => s.setHoverPoint);
+  const collapsed = useUiStore((s) => s.profileCollapsed);
+  const toggleProfile = useUiStore((s) => s.toggleProfile);
 
   const [baseSpeed, setBaseSpeed] = useState(4);
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; pt: ProfilePoint } | null>(null);
 
   const track = project?.tracks.find((t) => t.id === selectedTrackId) ?? null;
@@ -53,7 +51,6 @@ export function ProfilePanel(): ReactElement | null {
     if (p.ele > maxEle) maxEle = p.ele;
   }
   const eleRange = Math.max(1, maxEle - minEle);
-
   const xOf = (d: number): number => PAD.left + (d / maxDist) * INNER_W;
   const yOf = (e: number): number =>
     PAD.top + INNER_H - ((e - minEle) / eleRange) * INNER_H;
@@ -79,24 +76,17 @@ export function ProfilePanel(): ReactElement | null {
     setHoverPoint(null);
   }
 
-  async function correctElevation(): Promise<void> {
-    if (track === null) return;
-    setBusy(true);
-    setMessage(null);
-    try {
-      const elevations = await fetchElevations(trackCoords(track));
-      setTrackElevations(track.id, elevations);
-      setMessage("Altitudes mises à jour.");
-    } catch (cause) {
-      setMessage(`Erreur : ${cause instanceof Error ? cause.message : String(cause)}`);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
-    <div className="profile-panel">
+    <div className={collapsed ? "profile-panel collapsed" : "profile-panel"}>
       <div className="profile-header">
+        <button
+          type="button"
+          className="profile-collapse"
+          onClick={toggleProfile}
+          title={collapsed ? "Déplier le profil" : "Replier le profil"}
+        >
+          {collapsed ? "▴" : "▾"}
+        </button>
         <span className="profile-title">{track.name}</span>
         <span className="profile-stat">{formatDistance(stats.distance)}</span>
         <span className="profile-stat">D+ {Math.round(stats.ascent)} m</span>
@@ -122,26 +112,14 @@ export function ProfilePanel(): ReactElement | null {
           />
           km/h
         </label>
-        <label className="profile-ctrl">
-          <input
-            type="checkbox"
-            checked={slopeColoring}
-            onChange={(e) => setSlopeColoring(e.currentTarget.checked)}
-          />
-          pente
-        </label>
-        <button type="button" onClick={() => void correctElevation()} disabled={busy}>
-          {busy ? "…" : "Corriger alt."}
-        </button>
         {hover !== null && (
           <span className="profile-hover">
             {Math.round(hover.pt.ele)} m @ {(hover.pt.distance / 1000).toFixed(2)} km
           </span>
         )}
-        {message !== null && <span className="profile-msg">{message}</span>}
       </div>
 
-      {slopeColoring && (
+      {!collapsed && slopeColoring && (
         <div className="slope-legend">
           {SLOPE_LEGEND.map((l) => (
             <span key={l.label}>
@@ -152,43 +130,44 @@ export function ProfilePanel(): ReactElement | null {
         </div>
       )}
 
-      {hasProfile ? (
-        <svg
-          className="profile-svg"
-          viewBox={`0 0 ${W} ${H}`}
-          preserveAspectRatio="none"
-          onPointerMove={onPointerMove}
-          onPointerLeave={onPointerLeave}
-        >
-          <polyline points={polyline} fill="none" stroke="#0077b6" strokeWidth={1.5} />
-          {hover !== null && (
-            <g>
-              <line
-                x1={hover.x}
-                x2={hover.x}
-                y1={PAD.top}
-                y2={H - PAD.bottom}
-                stroke="#888"
-                strokeWidth={1}
-              />
-              <circle cx={hover.x} cy={yOf(hover.pt.ele)} r={3.5} fill="#0077b6" />
-            </g>
-          )}
-          <text x={4} y={PAD.top + 8} className="profile-axis">
-            {Math.round(maxEle)}
-          </text>
-          <text x={4} y={H - PAD.bottom} className="profile-axis">
-            {Math.round(minEle)}
-          </text>
-          <text x={W - PAD.right} y={H - 4} textAnchor="end" className="profile-axis">
-            {(maxDist / 1000).toFixed(1)} km
-          </text>
-        </svg>
-      ) : (
-        <p className="profile-empty">
-          Pas d'altitude sur cette trace — clique « Corriger alt. » pour les récupérer.
-        </p>
-      )}
+      {!collapsed &&
+        (hasProfile ? (
+          <svg
+            className="profile-svg"
+            viewBox={`0 0 ${W} ${H}`}
+            preserveAspectRatio="none"
+            onPointerMove={onPointerMove}
+            onPointerLeave={onPointerLeave}
+          >
+            <polyline points={polyline} fill="none" stroke="#0077b6" strokeWidth={1.5} />
+            {hover !== null && (
+              <g>
+                <line
+                  x1={hover.x}
+                  x2={hover.x}
+                  y1={PAD.top}
+                  y2={H - PAD.bottom}
+                  stroke="#888"
+                  strokeWidth={1}
+                />
+                <circle cx={hover.x} cy={yOf(hover.pt.ele)} r={3.5} fill="#0077b6" />
+              </g>
+            )}
+            <text x={4} y={PAD.top + 8} className="profile-axis">
+              {Math.round(maxEle)}
+            </text>
+            <text x={4} y={H - PAD.bottom} className="profile-axis">
+              {Math.round(minEle)}
+            </text>
+            <text x={W - PAD.right} y={H - 4} textAnchor="end" className="profile-axis">
+              {(maxDist / 1000).toFixed(1)} km
+            </text>
+          </svg>
+        ) : (
+          <p className="profile-empty">
+            Pas d'altitude — menu « Outils ▸ Corriger l'altitude ».
+          </p>
+        ))}
     </div>
   );
 }

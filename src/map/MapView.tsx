@@ -118,9 +118,14 @@ export function MapView(): ReactElement {
       setMapReady(true);
     });
 
+    // Redimensionne la carte quand la région centrale change (panneaux repliés/dépliés).
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(container);
+
     mapRef.current = map;
     setMapInstance(map);
     return () => {
+      resizeObserver.disconnect();
       setMapInstance(null);
       map.remove();
       mapRef.current = null;

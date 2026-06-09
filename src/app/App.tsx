@@ -1,28 +1,32 @@
 import type { ReactElement } from "react";
 import { MapView } from "../map/MapView";
-import { Toolbar } from "../ui/Toolbar";
+import { MenuBar } from "../ui/MenuBar";
+import { ContextBar } from "../ui/ContextBar";
 import { LayersPanel } from "../ui/LayersPanel";
-import { OfflinePanel } from "../ui/OfflinePanel";
 import { ProfilePanel } from "../ui/ProfilePanel";
+import { DownloadDialog } from "../ui/DownloadDialog";
 import { useEditorShortcuts } from "../ui/useEditorShortcuts";
 import "./app.css";
 
 /**
- * Composition racine de l'application.
- *
- * Phase 1 : carte plein écran + barre d'outils flottante (ouvrir / exporter GPX).
- * Le layout complet (panneau latéral rétractable, profil altimétrique dockable)
- * sera introduit dans les phases suivantes.
+ * Composition racine : interface ancrée en régions (plus d'encarts flottants).
+ * Barre de menus en haut + sous-barre contextuelle ; rangée [Calques | carte] ;
+ * dock profil en bas ; dialogues en surcouche.
  */
 export function App(): ReactElement {
   useEditorShortcuts();
   return (
     <div className="app-shell">
-      <MapView />
-      <Toolbar />
-      <LayersPanel />
+      <MenuBar />
+      <ContextBar />
+      <div className="app-body">
+        <LayersPanel />
+        <div className="map-region">
+          <MapView />
+        </div>
+      </div>
       <ProfilePanel />
-      <OfflinePanel />
+      <DownloadDialog />
     </div>
   );
 }

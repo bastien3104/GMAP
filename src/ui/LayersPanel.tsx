@@ -2,68 +2,49 @@ import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { Track } from "../core/model";
 import { useProjectStore } from "../store/project-store";
-import { useMapStore } from "../store/map-store";
+import { useUiStore } from "../store/ui-store";
 
 /**
- * Panneau de calques : gère les traces du projet (visibilité, couleur, nom, ordre,
- * suppression, sélection) avec annuler/rétablir. Masqué tant qu'aucun projet n'est ouvert.
+ * Panneau de calques ancré à gauche (rétractable) : gestion des traces
+ * (visibilité, couleur, nom, ordre, suppression, sélection). Les actions globales
+ * (annuler/rétablir, éditer) sont dans la barre de menus.
  */
-export function LayersPanel(): ReactElement | null {
+export function LayersPanel(): ReactElement {
   const project = useProjectStore((s) => s.project);
-  const past = useProjectStore((s) => s.past);
-  const future = useProjectStore((s) => s.future);
-  const undo = useProjectStore((s) => s.undo);
-  const redo = useProjectStore((s) => s.redo);
-  const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
-  const editMode = useMapStore((s) => s.editMode);
-  const setEditMode = useMapStore((s) => s.setEditMode);
+  const collapsed = useUiStore((s) => s.layersCollapsed);
+  const toggle = useUiStore((s) => s.toggleLayers);
 
-  // Sortie auto du mode édition si plus aucune trace sélectionnée.
-  useEffect(() => {
-    if (selectedTrackId === null && editMode) setEditMode(false);
-  }, [selectedTrackId, editMode, setEditMode]);
-
-  if (project === null) return null;
+  if (collapsed) {
+    return (
+      <aside className="layers-panel collapsed">
+        <button
+          type="button"
+          className="layers-collapse"
+          onClick={toggle}
+          title="Afficher les calques"
+        >
+          ›
+        </button>
+      </aside>
+    );
+  }
 
   return (
-    <div className="layers-panel">
+    <aside className="layers-panel">
       <div className="layers-header">
-        <span>Calques ({project.tracks.length})</span>
-        <span className="layers-actions">
-          <button
-            type="button"
-            className={editMode ? "edit-toggle active" : "edit-toggle"}
-            onClick={() => setEditMode(!editMode)}
-            disabled={selectedTrackId === null}
-            title="Éditer les points de la trace sélectionnée"
-          >
-            ✎
-          </button>
-          <button
-            type="button"
-            onClick={undo}
-            disabled={past.length === 0}
-            title="Annuler (Ctrl+Z)"
-          >
-            ↶
-          </button>
-          <button
-            type="button"
-            onClick={redo}
-            disabled={future.length === 0}
-            title="Rétablir (Ctrl+Y)"
-          >
-            ↷
-          </button>
-        </span>
+        <span>Calques{project !== null ? ` (${project.tracks.length})` : ""}</span>
+        <button
+          type="button"
+          className="layers-collapse"
+          onClick={toggle}
+          title="Masquer les calques"
+        >
+          ‹
+        </button>
       </div>
-      {editMode && (
-        <p className="edit-hint">
-          Glisser un sommet · clic milieu = insérer · sommet puis Suppr = supprimer ·
-          Échap = quitter
-        </p>
-      )}
-      {project.tracks.length === 0 ? (
+      {project === null ? (
+        <p className="layers-empty">Aucun projet ouvert.</p>
+      ) : project.tracks.length === 0 ? (
         <p className="layers-empty">Aucune trace.</p>
       ) : (
         <ul className="layers-list">
@@ -77,7 +58,7 @@ export function LayersPanel(): ReactElement | null {
           ))}
         </ul>
       )}
-    </div>
+    </aside>
   );
 }
 
