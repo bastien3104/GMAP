@@ -17,6 +17,12 @@ interface UiState {
   /** Dialogue de découpe par distance ouvert. */
   splitOpen: boolean;
   setSplitOpen: (open: boolean) => void;
+  /** Dialogue de simplification ouvert. */
+  simplifyOpen: boolean;
+  setSimplifyOpen: (open: boolean) => void;
+  /** Dialogue de lissage ouvert. */
+  smoothOpen: boolean;
+  setSmoothOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -28,4 +34,8 @@ export const useUiStore = create<UiState>((set) => ({
   setDownloadOpen: (downloadOpen) => set({ downloadOpen }),
   splitOpen: false,
   setSplitOpen: (splitOpen) => set({ splitOpen }),
+  simplifyOpen: false,
+  setSimplifyOpen: (simplifyOpen) => set({ simplifyOpen }),
+  smoothOpen: false,
+  setSmoothOpen: (smoothOpen) => set({ smoothOpen }),
 }));

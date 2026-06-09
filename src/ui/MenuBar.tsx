@@ -7,6 +7,7 @@ import { GpxParseError, parseGpx } from "../core/gpx/parse-gpx";
 import { buildGpx } from "../core/gpx/build-gpx";
 import { createDrawingTrack } from "../core/edit/draw-ops";
 import { fetchElevations, trackCoords } from "../core/elevation/elevation-client";
+import { DEFAULT_SPIKE_THRESHOLD_M } from "../core/geo/elevation-clean";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
 import { useUiStore } from "../store/ui-store";
@@ -28,6 +29,7 @@ export function MenuBar(): ReactElement {
   const reverseTrack = useProjectStore((s) => s.reverseTrack);
   const convertTrackKind = useProjectStore((s) => s.convertTrackKind);
   const mergeVisibleTracks = useProjectStore((s) => s.mergeVisibleTracks);
+  const cleanElevationSpikes = useProjectStore((s) => s.cleanElevationSpikes);
 
   const activeBasemapId = useMapStore((s) => s.activeBasemapId);
   const setBasemap = useMapStore((s) => s.setBasemap);
@@ -42,6 +44,8 @@ export function MenuBar(): ReactElement {
 
   const setDownloadOpen = useUiStore((s) => s.setDownloadOpen);
   const setSplitOpen = useUiStore((s) => s.setSplitOpen);
+  const setSimplifyOpen = useUiStore((s) => s.setSimplifyOpen);
+  const setSmoothOpen = useUiStore((s) => s.setSmoothOpen);
 
   const [online, setOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true,
@@ -225,6 +229,25 @@ export function MenuBar(): ReactElement {
         <MenuItem
           label="Découper par distance…"
           onSelect={() => setSplitOpen(true)}
+          disabled={!hasSelection}
+        />
+        <MenuSeparator />
+        <MenuItem
+          label="Simplifier…"
+          onSelect={() => setSimplifyOpen(true)}
+          disabled={!hasSelection}
+        />
+        <MenuItem
+          label="Lisser…"
+          onSelect={() => setSmoothOpen(true)}
+          disabled={!hasSelection}
+        />
+        <MenuItem
+          label="Supprimer les pics d'altitude"
+          onSelect={() => {
+            if (selectedTrackId !== null)
+              cleanElevationSpikes(selectedTrackId, DEFAULT_SPIKE_THRESHOLD_M);
+          }}
           disabled={!hasSelection}
         />
         <MenuSeparator />

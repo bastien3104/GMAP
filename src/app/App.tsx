@@ -6,6 +6,8 @@ import { LayersPanel } from "../ui/LayersPanel";
 import { ProfilePanel } from "../ui/ProfilePanel";
 import { DownloadDialog } from "../ui/DownloadDialog";
 import { SplitDialog } from "../ui/SplitDialog";
+import { SimplifyDialog } from "../ui/SimplifyDialog";
+import { SmoothDialog } from "../ui/SmoothDialog";
 import { useEditorShortcuts } from "../ui/useEditorShortcuts";
 import "./app.css";
 
@@ -29,6 +31,8 @@ export function App(): ReactElement {
       <ProfilePanel />
       <DownloadDialog />
       <SplitDialog />
+      <SimplifyDialog />
+      <SmoothDialog />
     </div>
   );
 }

@@ -14,6 +14,9 @@ import {
   reverseTrack as opReverseTrack,
   splitTrackByDistance as opSplitTrack,
 } from "../core/edit/transform-ops";
+import { simplifyTrack as opSimplifyTrack } from "../core/geo/simplify";
+import { smoothTrack as opSmoothTrack, type SmoothOptions } from "../core/geo/smooth";
+import { removeElevationSpikes as opCleanElevation } from "../core/geo/elevation-clean";
 import { withElevations } from "../core/elevation/elevation-client";
 
 /**
@@ -63,6 +66,12 @@ interface ProjectState {
   mergeVisibleTracks: () => void;
   /** Découpe une trace en morceaux tous les `intervalM` mètres. */
   splitTrack: (id: string, intervalM: number) => void;
+  /** Simplifie une trace (Douglas-Peucker, tolérance en m). */
+  simplifyTrack: (id: string, toleranceM: number) => void;
+  /** Lisse une trace (fenêtre glissante + retrait des aberrants). */
+  smoothTrack: (id: string, options: SmoothOptions) => void;
+  /** Supprime les pics d'altitude d'une trace. */
+  cleanElevationSpikes: (id: string, thresholdM: number) => void;
 }
 
 /** Profondeur maximale de l'historique. */
@@ -164,4 +173,20 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (piece !== undefined) set({ selectedTrackId: piece.id });
     }
   },
+
+  simplifyTrack: (id, toleranceM) =>
+    get().applyEdit((p) => ({
+      ...p,
+      tracks: p.tracks.map((t) => (t.id === id ? opSimplifyTrack(t, toleranceM) : t)),
+    })),
+  smoothTrack: (id, options) =>
+    get().applyEdit((p) => ({
+      ...p,
+      tracks: p.tracks.map((t) => (t.id === id ? opSmoothTrack(t, options) : t)),
+    })),
+  cleanElevationSpikes: (id, thresholdM) =>
+    get().applyEdit((p) => ({
+      ...p,
+      tracks: p.tracks.map((t) => (t.id === id ? opCleanElevation(t, thresholdM) : t)),
+    })),
 }));
