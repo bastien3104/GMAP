@@ -31,7 +31,9 @@ GMAP/
 │  ├─ core/                 # logique métier pure (testée, sans UI)
 │  │  ├─ model.ts           # types Project / Track / Waypoint / TrackPoint + helpers
 │  │  ├─ tiles/             # math de tuiles Web Mercator (+ tests)
-│  │  ├─ edit/              # opérations d'édition pures (track-ops…) (+ tests)
+│  │  ├─ edit/              # opérations d'édition pures (track-ops, point-ops, draw-ops)
+│  │  ├─ geo/               # stats (distance, D+/D-, pente) + Naismith (+ tests)
+│  │  ├─ elevation/         # client altimétrique online (+ tests)
 │  │  ├─ gpx/               # import/export GPX
 │  │  │  ├─ parse-gpx.ts    # GPX → modèle (tolérant)
 │  │  │  ├─ build-gpx.ts    # modèle → GPX 1.1
@@ -40,16 +42,15 @@ GMAP/
 │  │  ├─ geojson/           # modèle → GeoJSON (pivot d'affichage)
 │  │  │  ├─ to-geojson.ts
 │  │  │  └─ to-geojson.test.ts
-│  │  ├─ geo/               # stats, simplification, lissage (Phase 5/6)
-│  │  ├─ routing/           # client itinéraire (Géoplateforme online) (+ BRouter en 4b-ii)
-│  │  └─ elevation/         # altitude API + MNT (Phase 5)
+│  │  └─ routing/           # client itinéraire (Géoplateforme online) (+ BRouter en 4b-ii)
 │  ├─ store/                # Zustand
 │  │  ├─ project-store.ts   # projet courant + historique undo/redo + sélection
 │  │  └─ map-store.ts       # état carte (fond actif, hors-ligne)
 │  ├─ ui/                   # composants UI
 │  │  ├─ Toolbar.tsx        # ouvrir / exporter GPX + sélecteur de fond
 │  │  ├─ BasemapSelector.tsx
-│  │  ├─ LayersPanel.tsx    # calques : visibilité/couleur/nom/ordre/suppr + annuler/rétablir
+│  │  ├─ LayersPanel.tsx    # calques : visibilité/couleur/nom/ordre/suppr + annuler/rétablir + Éditer
+│  │  ├─ StatsPanel.tsx     # stats trace + durée Naismith + correction d'altitude
 │  │  ├─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
 │  │  └─ OfflinePanel.tsx   # téléchargement de zone + indicateur online/offline
 │  └─ offline/              # cache offline
@@ -63,7 +64,8 @@ GMAP/
       ├─ mbtiles.rs         # cache SQLite (rusqlite)
       ├─ tiles_protocol.rs  # handler tiles:// (MBTiles puis réseau)
       ├─ download.rs        # téléchargement de zone
-      └─ routing.rs         # commande route_online (Géoplateforme)
+      ├─ routing.rs         # commande route_online (Géoplateforme)
+      └─ elevation.rs       # commande elevation_online (altimétrie)
 ```
 
 ## Modèle de données
@@ -101,6 +103,13 @@ itinéraire Géoplateforme. L'appel HTTP passe par la commande Rust `route_onlin
 `reqwest`, évite le CORS) ; le parsing est en TS pur testé (`core/routing/itinerary.ts`).
 Échec réseau → segment droit (dégradation gracieuse). Le moteur offline **BRouter**
 (prioritaire) viendra en 4b-ii.
+
+**Statistiques & altitude** (Phase 5a) : `core/geo` calcule distance/D+/D-/pente
+(`stats.ts`) et la durée (`naismith.ts`) ; `StatsPanel` les affiche pour la trace
+sélectionnée. La **correction d'altitude** récupère les `z` via la commande Rust
+`elevation_online` (Géoplateforme, lots de points), parse en TS (`core/elevation`), et
+applique via `applyEdit` (réversible). MNT offline + suppression des pics aberrants à venir
+(Phases ultérieures). Le profil interactif + la coloration par pente = Phase 5b.
 
 ## Flux de données
 ```

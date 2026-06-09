@@ -126,3 +126,15 @@
 - **Snap-to-path** = segments routés entre clics (ancres), ajoutés via `applyEdit`
   (réversibles) ; échec → segment droit. Profils online : pedestrian/car.
 - **Recalcul au déplacement d'ancre** et profils hiking/trekking/vélo = **4b-ii** (BRouter).
+
+## 2026-06-08 — Phase 5a (Stats + altitude online + Naismith)
+- **Calculs purs et testés** (`core/geo/stats.ts`, `core/geo/naismith.ts`) : distance
+  haversine, D+/D- (seuil paramétrable, défaut 0), alt min/max, pente moy/max ; durée
+  Naismith (vitesse de base réglable, défaut 4 km/h ; 6 s/m de montée ; correction descente
+  Langmuir optionnelle).
+- **Altimétrie online** : commande Rust `elevation_online` (réutilise `reqwest`, batch de
+  points, évite le CORS) ; parsing TS pur testé (`core/elevation`) ; application via
+  `applyEdit` (réversible). Sentinelle no-data (`z ≤ -1000`) ignorée. Lots ≤ 200 points.
+- **MNT offline** et **détection/suppression des pics aberrants** différés (MNT = phase
+  ultérieure ; pics = Phase 6 nettoyage).
+- Profil altimétrique interactif + coloration par pente = **Phase 5b**.
