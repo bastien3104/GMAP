@@ -27,13 +27,14 @@ GMAP/
 │  │  ├─ track-layers.ts    # source + couches MapLibre du projet
 │  │  ├─ edit-layers.ts     # poignées d'édition (sommets/milieux)
 │  │  ├─ slope-layers.ts    # couche coloration pente + marqueur de survol
+│  │  ├─ preview-layer.ts   # couche d'aperçu (outils de nettoyage)
 │  │  ├─ map-ref.ts         # référence carte (emprise/zoom courants)
 │  │  └─ basemaps.test.ts
 │  ├─ core/                 # logique métier pure (testée, sans UI)
 │  │  ├─ model.ts           # types Project / Track / Waypoint / TrackPoint + helpers
 │  │  ├─ tiles/             # math de tuiles Web Mercator (+ tests)
 │  │  ├─ edit/              # opérations pures (track-ops, point-ops, draw-ops, transform-ops)
-│  │  ├─ geo/               # stats (distance, D+/D-, pente) + Naismith (+ tests)
+│  │  ├─ geo/               # stats, Naismith, profil, simplify (RDP), smooth, elevation-clean (+ tests)
 │  │  ├─ elevation/         # client altimétrique online (+ tests)
 │  │  ├─ gpx/               # import/export GPX
 │  │  │  ├─ parse-gpx.ts    # GPX → modèle (tolérant)

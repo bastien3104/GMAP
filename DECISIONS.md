@@ -172,3 +172,14 @@
   (dialogue `SplitDialog`).
 - **Sélection** : fusion → trace fusionnée ; découpe → 1er morceau (repéré par l'index).
 - Nettoyage (Douglas-Peucker, lissage, pics d'altitude, découpe au point) = **Phase 6b**.
+
+## 2026-06-08 — Phase 6b (Nettoyage)
+- **Algos purs testés** (`core/geo/`) : `simplifyTrack` (Douglas-Peucker, distance
+  perpendiculaire en mètres via projection locale, par segment) ; `smoothTrack` (retrait
+  des aberrants > maxJump + moyenne glissante, extrémités fixes) ; `removeElevationSpikes`
+  (altitude isolée remplacée par interpolation des voisins).
+- **Aperçu live** : `map-store.previewData` + couche `preview-layer` (ligne rose
+  pointillée) ; les dialogues Simplifier/Lisser recalculent et publient l'aperçu, nettoyé
+  à la fermeture. Simplifier affiche « N → M points (−K) ».
+- **Pics d'altitude = action directe** (seuil par défaut 25 m, `DEFAULT_SPIKE_THRESHOLD_M`).
+- Tout via `applyEdit` (réversible). Découpe au point cliqué = petit ajout différé.
