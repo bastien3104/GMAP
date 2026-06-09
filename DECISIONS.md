@@ -138,3 +138,14 @@
 - **MNT offline** et **détection/suppression des pics aberrants** différés (MNT = phase
   ultérieure ; pics = Phase 6 nettoyage).
 - Profil altimétrique interactif + coloration par pente = **Phase 5b**.
+
+## 2026-06-08 — Phase 5b (Profil interactif + coloration pente)
+- **Profil SVG maison** (pas de dépendance de graphes) ; données pures testées
+  (`core/geo/profile.ts`). Survol → `map-store.hoverPoint` → marqueur carte (synchro).
+- **Coloration par pente** : une `LineString` par arête avec sa pente
+  (`core/geojson/slope-geojson.ts`), couche `step` (gradient configurable en un point :
+  `SLOPE_LEGEND` dans `slope-layers.ts`) + légende. Activée pour la trace sélectionnée.
+- **Consolidation UI** : `StatsPanel` (5a) **remplacé** par `ProfilePanel` (dock bas
+  pleine largeur) regroupant stats + Naismith + correction d'altitude + coloration + profil.
+- **Conformité attribution** : déplacée en haut-droite (compacte) pour rester visible
+  au-dessus du dock profil.

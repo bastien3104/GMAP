@@ -26,6 +26,7 @@ GMAP/
 │  │  ├─ map-style.ts       # build de style/source raster (pur)
 │  │  ├─ track-layers.ts    # source + couches MapLibre du projet
 │  │  ├─ edit-layers.ts     # poignées d'édition (sommets/milieux)
+│  │  ├─ slope-layers.ts    # couche coloration pente + marqueur de survol
 │  │  ├─ map-ref.ts         # référence carte (emprise/zoom courants)
 │  │  └─ basemaps.test.ts
 │  ├─ core/                 # logique métier pure (testée, sans UI)
@@ -50,7 +51,7 @@ GMAP/
 │  │  ├─ Toolbar.tsx        # ouvrir / exporter GPX + sélecteur de fond
 │  │  ├─ BasemapSelector.tsx
 │  │  ├─ LayersPanel.tsx    # calques : visibilité/couleur/nom/ordre/suppr + annuler/rétablir + Éditer
-│  │  ├─ StatsPanel.tsx     # stats trace + durée Naismith + correction d'altitude
+│  │  ├─ ProfilePanel.tsx   # dock bas : stats + Naismith + correction alt. + coloration pente + profil SVG
 │  │  ├─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
 │  │  └─ OfflinePanel.tsx   # téléchargement de zone + indicateur online/offline
 │  └─ offline/              # cache offline
@@ -109,7 +110,14 @@ itinéraire Géoplateforme. L'appel HTTP passe par la commande Rust `route_onlin
 sélectionnée. La **correction d'altitude** récupère les `z` via la commande Rust
 `elevation_online` (Géoplateforme, lots de points), parse en TS (`core/elevation`), et
 applique via `applyEdit` (réversible). MNT offline + suppression des pics aberrants à venir
-(Phases ultérieures). Le profil interactif + la coloration par pente = Phase 5b.
+(Phases ultérieures).
+
+**Profil & coloration par pente** (Phase 5b) : `ProfilePanel` (dock bas) trace un profil
+SVG (`core/geo/profile.ts`) ; le survol publie `map-store.hoverPoint`, que `MapView` rend en
+marqueur sur la carte. La bascule « pente » alimente une source d'arêtes
+(`core/geojson/slope-geojson.ts`) colorée par `slope` (couche `slope-layers.ts`, gradient
+configurable + légende). Attribution déplacée en haut-droite (compacte) pour rester visible
+au-dessus du dock.
 
 ## Flux de données
 ```
