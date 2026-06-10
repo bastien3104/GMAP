@@ -25,6 +25,12 @@ fn save_text_file(path: String, contents: String) -> Result<(), String> {
     fs::write(&path, contents).map_err(|e| e.to_string())
 }
 
+/// Écrit un contenu binaire dans un fichier (export FIT).
+#[tauri::command]
+fn save_binary_file(path: String, contents: Vec<u8>) -> Result<(), String> {
+    fs::write(&path, contents).map_err(|e| e.to_string())
+}
+
 /// Active/désactive le mode hors-ligne (le handler tiles:// ne tente plus le réseau).
 #[tauri::command]
 fn set_offline(state: State<AppState>, offline: bool) {
@@ -62,6 +68,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             save_text_file,
+            save_binary_file,
             set_offline,
             cache_stats,
             download::download_zone,
