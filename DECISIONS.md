@@ -183,3 +183,12 @@
   à la fermeture. Simplifier affiche « N → M points (−K) ».
 - **Pics d'altitude = action directe** (seuil par défaut 25 m, `DEFAULT_SPIKE_THRESHOLD_M`).
 - Tout via `applyEdit` (réversible). Découpe au point cliqué = petit ajout différé.
+
+## 2026-06-10 — Phase 7a (Exports GeoJSON / KML / TCX)
+- **Sérialiseurs purs testés** (`core/export/`) : `buildGeoJson` (MultiLineString +
+  Points, altitudes incluses), `buildKml` (KML 2.2), `buildTcx` (Courses, `Time`
+  synthétisé si absent, nom de Course tronqué à 15 car.).
+- **Menu Fichier** : Exporter GPX / GeoJSON / KML / TCX via un helper générique `saveAs`
+  (réutilise le dialogue natif + `save_text_file`). Pas de changement Rust/store.
+- **FIT** (binaire) = **7a-bis** (encodeur + `save_binary_file`). Puis waypoints,
+  géocodage, photos EXIF.
