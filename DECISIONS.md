@@ -193,6 +193,14 @@
 - **FIT** (binaire) = **7a-bis** (encodeur + `save_binary_file`). Puis waypoints,
   géocodage, photos EXIF.
 
+## 2026-06-10 — Phase 7a-bis (Export FIT)
+- **Encodeur FIT pur** (`core/export/fit.ts`) : fichier « course » (file_id type=course +
+  course + lap + records), en-tête 14 octets, semicercles, altitude (m+500)×5, temps époque
+  FIT, **CRC-16 FIT** (en-tête + fichier). Tests structurels (signature .FIT, taille de
+  données, CRC). → tous les formats du prompt sont couverts (GPX/GeoJSON/KML/TCX/FIT).
+- **Sauvegarde binaire** : commande Rust `save_binary_file(path, Vec<u8>)` ; le frontend
+  envoie `Array.from(bytes)`. Menu Fichier ▸ Exporter FIT…
+
 ## 2026-06-10 — Import GPX multiple (ajout aux calques)
 - « Ouvrir des GPX… » accepte **plusieurs fichiers** et **ajoute** les traces/waypoints au
   projet courant (action `importProject`) au lieu de remplacer : 1er fichier crée le projet

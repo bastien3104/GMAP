@@ -44,7 +44,7 @@ GMAP/
 │  │  ├─ geojson/           # modèle → GeoJSON (pivot d'affichage)
 │  │  │  ├─ to-geojson.ts
 │  │  │  └─ to-geojson.test.ts
-│  │  ├─ export/            # exports GeoJSON / KML / TCX (+ FIT à venir) (+ tests)
+│  │  ├─ export/            # exports GeoJSON / KML / TCX / FIT (+ tests)
 │  │  └─ routing/           # client itinéraire (Géoplateforme online) (+ BRouter en 4b-ii)
 │  ├─ store/                # Zustand
 │  │  ├─ project-store.ts   # projet courant + historique undo/redo + sélection
