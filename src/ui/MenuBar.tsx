@@ -8,6 +8,7 @@ import { buildGpx } from "../core/gpx/build-gpx";
 import { buildGeoJson } from "../core/export/geojson-export";
 import { buildKml } from "../core/export/kml";
 import { buildTcx } from "../core/export/tcx";
+import { buildFit } from "../core/export/fit";
 import { createDrawingTrack } from "../core/edit/draw-ops";
 import { fetchElevations, trackCoords } from "../core/elevation/elevation-client";
 import { DEFAULT_SPIKE_THRESHOLD_M } from "../core/geo/elevation-clean";
@@ -131,6 +132,32 @@ export function MenuBar(): ReactElement {
     }
   }
 
+  async function saveBinary(bytes: Uint8Array, ext: string): Promise<void> {
+    if (project === null) return;
+    const filename = `${project.name.trim() || "export"}.${ext}`;
+    try {
+      if (isTauri()) {
+        const path = await save({
+          defaultPath: filename,
+          filters: [{ name: ext.toUpperCase(), extensions: [ext] }],
+        });
+        if (path === null) return;
+        await invoke("save_binary_file", { path, contents: Array.from(bytes) });
+        flash(`Exporté : ${path}`);
+      } else {
+        const url = URL.createObjectURL(new Blob([bytes]));
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        flash("Fichier exporté.");
+      }
+    } catch (cause) {
+      flash(`Échec de l'export : ${cause instanceof Error ? cause.message : ""}`);
+    }
+  }
+
   function toggleDraw(): void {
     if (drawMode) {
       setDrawMode(false);
@@ -200,6 +227,13 @@ export function MenuBar(): ReactElement {
           label="Exporter TCX…"
           onSelect={() => {
             if (project !== null) void saveAs(buildTcx(project), "tcx");
+          }}
+          disabled={!hasProject}
+        />
+        <MenuItem
+          label="Exporter FIT…"
+          onSelect={() => {
+            if (project !== null) void saveBinary(buildFit(project), "fit");
           }}
           disabled={!hasProject}
         />
