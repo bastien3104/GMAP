@@ -5,6 +5,9 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { BASEMAPS } from "../map/basemaps";
 import { GpxParseError, parseGpx } from "../core/gpx/parse-gpx";
 import { buildGpx } from "../core/gpx/build-gpx";
+import { buildGeoJson } from "../core/export/geojson-export";
+import { buildKml } from "../core/export/kml";
+import { buildTcx } from "../core/export/tcx";
 import { createDrawingTrack } from "../core/edit/draw-ops";
 import { fetchElevations, trackCoords } from "../core/elevation/elevation-client";
 import { DEFAULT_SPIKE_THRESHOLD_M } from "../core/geo/elevation-clean";
@@ -91,23 +94,20 @@ export function MenuBar(): ReactElement {
     event.currentTarget.value = "";
   }
 
-  async function exportGpx(): Promise<void> {
+  async function saveAs(content: string, ext: string): Promise<void> {
     if (project === null) return;
-    const xml = buildGpx(project);
-    const filename = `${project.name.trim() || "export"}.gpx`;
+    const filename = `${project.name.trim() || "export"}.${ext}`;
     try {
       if (isTauri()) {
         const path = await save({
           defaultPath: filename,
-          filters: [{ name: "GPX", extensions: ["gpx"] }],
+          filters: [{ name: ext.toUpperCase(), extensions: [ext] }],
         });
         if (path === null) return;
-        await invoke("save_text_file", { path, contents: xml });
+        await invoke("save_text_file", { path, contents: content });
         flash(`Exporté : ${path}`);
       } else {
-        const url = URL.createObjectURL(
-          new Blob([xml], { type: "application/gpx+xml" }),
-        );
+        const url = URL.createObjectURL(new Blob([content]));
         const anchor = document.createElement("a");
         anchor.href = url;
         anchor.download = filename;
@@ -159,7 +159,35 @@ export function MenuBar(): ReactElement {
 
       <Menu label="Fichier">
         <MenuItem label="Ouvrir GPX…" onSelect={() => fileInputRef.current?.click()} />
-        <MenuItem label="Exporter GPX…" onSelect={() => void exportGpx()} disabled={!hasProject} />
+        <MenuSeparator />
+        <MenuItem
+          label="Exporter GPX…"
+          onSelect={() => {
+            if (project !== null) void saveAs(buildGpx(project), "gpx");
+          }}
+          disabled={!hasProject}
+        />
+        <MenuItem
+          label="Exporter GeoJSON…"
+          onSelect={() => {
+            if (project !== null) void saveAs(buildGeoJson(project), "geojson");
+          }}
+          disabled={!hasProject}
+        />
+        <MenuItem
+          label="Exporter KML…"
+          onSelect={() => {
+            if (project !== null) void saveAs(buildKml(project), "kml");
+          }}
+          disabled={!hasProject}
+        />
+        <MenuItem
+          label="Exporter TCX…"
+          onSelect={() => {
+            if (project !== null) void saveAs(buildTcx(project), "tcx");
+          }}
+          disabled={!hasProject}
+        />
       </Menu>
 
       <div className="menubar-group" aria-label="Édition">
