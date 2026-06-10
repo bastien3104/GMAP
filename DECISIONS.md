@@ -192,3 +192,9 @@
   (réutilise le dialogue natif + `save_text_file`). Pas de changement Rust/store.
 - **FIT** (binaire) = **7a-bis** (encodeur + `save_binary_file`). Puis waypoints,
   géocodage, photos EXIF.
+
+## 2026-06-10 — Import GPX multiple (ajout aux calques)
+- « Ouvrir des GPX… » accepte **plusieurs fichiers** et **ajoute** les traces/waypoints au
+  projet courant (action `importProject`) au lieu de remplacer : 1er fichier crée le projet
+  (réinitialise l'historique), les suivants s'ajoutent via `applyEdit` (réversible) avec
+  recoloration pour continuer la palette. Tous les GPX ouverts apparaissent dans les calques.

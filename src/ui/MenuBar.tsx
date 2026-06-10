@@ -22,7 +22,7 @@ export function MenuBar(): ReactElement {
 
   const project = useProjectStore((s) => s.project);
   const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
-  const loadProject = useProjectStore((s) => s.loadProject);
+  const importProject = useProjectStore((s) => s.importProject);
   const addTrack = useProjectStore((s) => s.addTrack);
   const setTrackElevations = useProjectStore((s) => s.setTrackElevations);
   const past = useProjectStore((s) => s.past);
@@ -78,20 +78,31 @@ export function MenuBar(): ReactElement {
   }
 
   async function importFile(file: File): Promise<void> {
-    try {
-      const text = await file.text();
-      loadProject(parseGpx(text, file.name.replace(/\.gpx$/i, "")));
-    } catch (cause) {
-      flash(
-        cause instanceof GpxParseError ? cause.message : "Échec de l'import GPX.",
-      );
+    const text = await file.text();
+    importProject(parseGpx(text, file.name.replace(/\.gpx$/i, "")));
+  }
+
+  async function importFiles(files: File[]): Promise<void> {
+    let imported = 0;
+    for (const file of files) {
+      try {
+        await importFile(file);
+        imported += 1;
+      } catch (cause) {
+        flash(
+          cause instanceof GpxParseError
+            ? `${file.name} : ${cause.message}`
+            : `Échec de l'import de ${file.name}.`,
+        );
+      }
     }
+    if (imported > 1) flash(`${imported} fichiers GPX importés.`);
   }
 
   function onInputChange(event: ChangeEvent<HTMLInputElement>): void {
-    const file = event.currentTarget.files?.[0];
-    if (file !== undefined) void importFile(file);
+    const files = Array.from(event.currentTarget.files ?? []);
     event.currentTarget.value = "";
+    if (files.length > 0) void importFiles(files);
   }
 
   async function saveAs(content: string, ext: string): Promise<void> {
@@ -153,12 +164,16 @@ export function MenuBar(): ReactElement {
         ref={fileInputRef}
         type="file"
         accept=".gpx,application/gpx+xml"
+        multiple
         onChange={onInputChange}
         hidden
       />
 
       <Menu label="Fichier">
-        <MenuItem label="Ouvrir GPX…" onSelect={() => fileInputRef.current?.click()} />
+        <MenuItem
+          label="Ouvrir des GPX…"
+          onSelect={() => fileInputRef.current?.click()}
+        />
         <MenuSeparator />
         <MenuItem
           label="Exporter GPX…"

@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { createEmptyProject, type Project, type Track } from "../core/model";
+import {
+  createEmptyProject,
+  defaultTrackColor,
+  type Project,
+  type Track,
+} from "../core/model";
 import {
   moveTrack as opMoveTrack,
   removeTrack as opRemoveTrack,
@@ -38,6 +43,8 @@ interface ProjectState {
 
   /** Charge un projet et réinitialise l'historique. */
   loadProject: (project: Project) => void;
+  /** Importe (ajoute) les traces/waypoints d'un projet dans le projet courant. */
+  importProject: (imported: Project) => void;
   /** Ferme le projet courant. */
   clearProject: () => void;
   /** Applique une mutation immuable et l'enregistre dans l'historique. */
@@ -85,6 +92,26 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   loadProject: (project) =>
     set({ project, past: [], future: [], selectedTrackId: null }),
+
+  importProject: (imported) => {
+    const current = get().project;
+    if (current === null) {
+      set({ project: imported, past: [], future: [], selectedTrackId: imported.tracks[0]?.id ?? null });
+      return;
+    }
+    // Recolore les traces ajoutées pour continuer la palette.
+    const base = current.tracks.length;
+    const added = imported.tracks.map((t, i) => ({
+      ...t,
+      color: defaultTrackColor(base + i),
+    }));
+    get().applyEdit((p) => ({
+      ...p,
+      tracks: [...p.tracks, ...added],
+      waypoints: [...p.waypoints, ...imported.waypoints],
+    }));
+    if (added[0] !== undefined) set({ selectedTrackId: added[0].id });
+  },
 
   clearProject: () =>
     set({ project: null, past: [], future: [], selectedTrackId: null }),
