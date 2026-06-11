@@ -58,7 +58,7 @@ interface MapState {
   setPreview: (data: FeatureCollection | null) => void;
 }
 
-export const useMapStore = create<MapState>((set, get) => ({
+export const useMapStore = create<MapState>((set) => ({
   activeBasemapId: DEFAULT_BASEMAP_ID,
   setBasemap: (basemapId) => set({ activeBasemapId: basemapId }),
   offline: false,

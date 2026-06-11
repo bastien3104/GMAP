@@ -1,13 +1,15 @@
-import type {
-  CircleLayerSpecification,
-  LineLayerSpecification,
-} from "maplibre-gl";
+import type { LineLayerSpecification } from "maplibre-gl";
 
-/** Source GeoJSON et couches MapLibre pour les données du projet (traces + waypoints). */
+/**
+ * Source GeoJSON et couches MapLibre pour les traces du projet.
+ *
+ * Les waypoints (POI) sont rendus via des marqueurs DOM (`maplibregl.Marker`) dans
+ * `MapView` — glyphe + nom, déplaçables — plutôt que par une couche symbole (qui
+ * exigerait une URL `glyphs`, incompatible avec le mode hors-ligne).
+ */
 
 export const PROJECT_SOURCE_ID = "project-data";
 export const TRACK_LINE_LAYER_ID = "project-track-lines";
-export const WAYPOINT_CIRCLE_LAYER_ID = "project-waypoints";
 
 /** Couche des segments de trace (couleur portée par la feature). */
 export const trackLineLayer: LineLayerSpecification = {
@@ -20,19 +22,5 @@ export const trackLineLayer: LineLayerSpecification = {
     "line-color": ["get", "color"],
     // Trace sélectionnée plus épaisse (surbrillance).
     "line-width": ["case", ["get", "selected"], 6, 3],
-  },
-};
-
-/** Couche des waypoints (petits cercles). */
-export const waypointCircleLayer: CircleLayerSpecification = {
-  id: WAYPOINT_CIRCLE_LAYER_ID,
-  type: "circle",
-  source: PROJECT_SOURCE_ID,
-  filter: ["==", ["get", "kind"], "waypoint"],
-  paint: {
-    "circle-radius": 5,
-    "circle-color": "#ffffff",
-    "circle-stroke-color": "#d62828",
-    "circle-stroke-width": 2,
   },
 };

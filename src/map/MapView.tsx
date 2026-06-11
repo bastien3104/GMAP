@@ -18,7 +18,6 @@ import {
 import {
   PROJECT_SOURCE_ID,
   trackLineLayer,
-  waypointCircleLayer,
 } from "./track-layers";
 import {
   buildEditFeatures,
@@ -47,7 +46,15 @@ import { slopeFeatureCollection } from "../core/geojson/slope-geojson";
 import { deletePoint, insertPoint, movePoint } from "../core/edit/point-ops";
 import { appendPoint, appendPoints } from "../core/edit/draw-ops";
 import { routeSegment } from "../core/routing/itinerary";
-import { trackPointCount, type Project, type TrackPoint } from "../core/model";
+import {
+  createWaypoint,
+  trackPointCount,
+  waypointSymbol,
+  type Project,
+  type TrackPoint,
+  type Waypoint,
+} from "../core/model";
+import { fetchElevations } from "../core/elevation/elevation-client";
 import { projectBounds, projectToGeoJSON } from "../core/geojson/to-geojson";
 
 /** Vue initiale : centre approximatif de la France métropolitaine. */
@@ -74,9 +81,12 @@ export function MapView(): ReactElement {
   const [mapReady, setMapReady] = useState(false);
   const project = useProjectStore((s) => s.project);
   const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
+  const waypoints = useProjectStore((s) => s.project?.waypoints);
+  const selectedWaypointId = useProjectStore((s) => s.selectedWaypointId);
   const activeBasemapId = useMapStore((s) => s.activeBasemapId);
   const editMode = useMapStore((s) => s.editMode);
   const drawMode = useMapStore((s) => s.drawMode);
+  const poiMode = useMapStore((s) => s.poiMode);
   const freehand = useMapStore((s) => s.freehand);
   const slopeColoring = useMapStore((s) => s.slopeColoring);
   const hoverPoint = useMapStore((s) => s.hoverPoint);
@@ -87,6 +97,7 @@ export function MapView(): ReactElement {
   const selectedVertexRef = useRef<SelectedVertex | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const rebuildHandlesRef = useRef<(() => void) | null>(null);
+  const markersRef = useRef<globalThis.Map<string, maplibregl.Marker>>(new globalThis.Map());
 
   // Initialisation de la carte (une seule fois).
   useEffect(() => {
@@ -117,7 +128,6 @@ export function MapView(): ReactElement {
       map.addLayer(trackLineLayer);
       map.addSource(SLOPE_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
       map.addLayer(slopeLineLayer);
-      map.addLayer(waypointCircleLayer);
       map.addSource(HOVER_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
       map.addLayer(hoverPointLayer);
       map.addSource(PREVIEW_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
@@ -226,6 +236,129 @@ export function MapView(): ReactElement {
           };
     source.setData(data);
   }, [hoverPoint, mapReady]);
+
+  // Waypoints : marqueurs DOM (glyphe + nom), déplaçables en mode POI.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null || !mapReady) return;
+    const markers = markersRef.current;
+    const list = waypoints ?? [];
+    const ids = new Set(list.map((w) => w.id));
+
+    // Retire les marqueurs des waypoints disparus.
+    for (const [id, marker] of markers) {
+      if (!ids.has(id)) {
+        marker.remove();
+        markers.delete(id);
+      }
+    }
+
+    for (const wpt of list) {
+      let marker = markers.get(wpt.id);
+      if (marker === undefined) {
+        const el = document.createElement("div");
+        el.className = "wpt-marker";
+        const glyph = document.createElement("span");
+        glyph.className = "wpt-glyph";
+        const label = document.createElement("span");
+        label.className = "wpt-label";
+        el.append(glyph, label);
+        el.addEventListener("click", (ev) => {
+          ev.stopPropagation(); // ne place pas un nouveau POI
+          useProjectStore.getState().selectWaypoint(wpt.id);
+        });
+        marker = new maplibregl.Marker({ element: el, anchor: "center" });
+        marker.setLngLat([wpt.lon, wpt.lat]).addTo(map);
+        marker.on("dragstart", () => useProjectStore.getState().selectWaypoint(wpt.id));
+        const m = marker;
+        marker.on("dragend", () => {
+          const { lng, lat } = m.getLngLat();
+          useProjectStore.getState().moveWaypoint(wpt.id, lng, lat);
+        });
+        markers.set(wpt.id, marker);
+      }
+      marker.setLngLat([wpt.lon, wpt.lat]);
+      marker.setDraggable(poiMode);
+      const el = marker.getElement();
+      el.classList.toggle("selected", wpt.id === selectedWaypointId);
+      el.classList.toggle("draggable", poiMode);
+      const sym = waypointSymbol(wpt.symbol);
+      const glyphEl = el.querySelector(".wpt-glyph");
+      const labelEl = el.querySelector(".wpt-label");
+      if (glyphEl !== null) glyphEl.textContent = sym.glyph;
+      if (labelEl !== null) labelEl.textContent = wpt.name;
+    }
+  }, [waypoints, selectedWaypointId, poiMode, mapReady]);
+
+  // Nettoyage des marqueurs au démontage.
+  useEffect(() => {
+    const markers = markersRef.current;
+    return () => {
+      for (const marker of markers.values()) marker.remove();
+      markers.clear();
+    };
+  }, []);
+
+  // Mode POI : clic = pose un waypoint (altitude auto online, repli silencieux).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null || !mapReady || !poiMode) return;
+    map.getCanvas().style.cursor = "crosshair";
+
+    const fillElevation = async (id: string, lon: number, lat: number): Promise<void> => {
+      try {
+        const [z] = await fetchElevations([[lon, lat]]);
+        if (z !== undefined && Number.isFinite(z) && z > -1000) {
+          useProjectStore.getState().enrichWaypointElevation(id, Math.round(z * 10) / 10);
+        }
+      } catch {
+        // hors-ligne / échec : altitude laissée vide (éditable à la main).
+      }
+    };
+
+    const onClick = (e: MapMouseEvent): void => {
+      const lon = e.lngLat.lng;
+      const lat = e.lngLat.lat;
+      const wpt: Waypoint = createWaypoint({ lat, lon });
+      useProjectStore.getState().addWaypoint(wpt);
+      void fillElevation(wpt.id, lon, lat);
+    };
+    const onKeyDown = (ev: KeyboardEvent): void => {
+      if (ev.key === "Escape") useMapStore.getState().setPoiMode(false);
+    };
+    map.on("click", onClick);
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      map.off("click", onClick);
+      window.removeEventListener("keydown", onKeyDown);
+      map.getCanvas().style.cursor = "";
+    };
+  }, [poiMode, mapReady]);
+
+  // Touches sur un waypoint sélectionné : Suppr = supprimer, Échap = désélectionner.
+  useEffect(() => {
+    if (selectedWaypointId === null) return;
+    const onKey = (ev: KeyboardEvent): void => {
+      const target = ev.target as HTMLElement | null;
+      if (
+        target !== null &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return; // saisie en cours dans l'éditeur
+      }
+      if (ev.key === "Delete" || ev.key === "Backspace") {
+        ev.preventDefault();
+        useProjectStore.getState().deleteWaypoint(selectedWaypointId);
+      } else if (ev.key === "Escape") {
+        useProjectStore.getState().selectWaypoint(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedWaypointId]);
 
   // Mode édition : poignées (sommets + milieux), déplacement, insertion, suppression.
   useEffect(() => {

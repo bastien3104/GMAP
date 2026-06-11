@@ -100,6 +100,11 @@ interface ProjectState {
   moveWaypoint: (id: string, lon: number, lat: number) => void;
   /** Supprime un waypoint. */
   deleteWaypoint: (id: string) => void;
+  /**
+   * Renseigne l'altitude d'un waypoint sans entrée d'historique (enrichissement
+   * asynchrone post-pose). Reste lié à l'instantané « présent » (cf. redo).
+   */
+  enrichWaypointElevation: (id: string, ele: number) => void;
 }
 
 /** Profondeur maximale de l'historique. */
@@ -260,5 +265,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   deleteWaypoint: (id) => {
     get().applyEdit((p) => opRemoveWaypoint(p, id));
     if (get().selectedWaypointId === id) set({ selectedWaypointId: null });
+  },
+  enrichWaypointElevation: (id, ele) => {
+    const { project } = get();
+    if (project === null) return;
+    const next = opUpdateWaypoint(project, id, { ele });
+    if (next !== project) set({ project: next });
   },
 }));

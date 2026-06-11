@@ -27,3 +27,13 @@ export function getVisibleBbox(): Bbox | null {
 export function getCurrentZoom(): number | null {
   return current === null ? null : Math.round(current.getZoom());
 }
+
+/** Centre la carte sur un point (zoom plancher), sans recadrage brutal. */
+export function flyTo(lon: number, lat: number): void {
+  if (current === null) return;
+  current.easeTo({
+    center: [lon, lat],
+    zoom: Math.max(current.getZoom(), 14),
+    duration: 500,
+  });
+}
