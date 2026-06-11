@@ -159,6 +159,7 @@ function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
   const rename = useProjectStore((s) => s.renameTrack);
   const move = useProjectStore((s) => s.moveTrack);
   const remove = useProjectStore((s) => s.deleteTrack);
+  const openActivity = useUiStore((s) => s.setActivityOpen);
 
   const [name, setName] = useState(track.name);
   const [color, setColorDraft] = useState(track.color);
@@ -234,9 +235,18 @@ function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
             </span>
           )}
           {activity !== undefined ? (
-            <span className="track-badge-activity" title={activity.device ?? "Activité"}>
+            <button
+              type="button"
+              className="track-badge-activity"
+              title={`Analyse d'activité${activity.device !== undefined ? ` · ${activity.device}` : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectTrack(track.id);
+                openActivity(true);
+              }}
+            >
               <IconPulse size={11} /> {ACTIVITY_SPORT_LABELS[activity.sport]}
-            </span>
+            </button>
           ) : (
             <span className="track-kind">
               {track.kind === "route" ? "route" : "trace"}

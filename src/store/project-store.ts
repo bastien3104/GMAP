@@ -14,6 +14,7 @@ import {
   setTrackVisibility as opSetTrackVisibility,
 } from "../core/edit/track-ops";
 import { addTrack as opAddTrack } from "../core/edit/draw-ops";
+import { trimTrackTime as opTrimTrackTime } from "../core/edit/activity-ops";
 import {
   convertTrackKind as opConvertKind,
   mergeTracks as opMergeTracks,
@@ -77,6 +78,8 @@ interface ProjectState {
   deleteTrack: (id: string) => void;
   /** Inverse le sens d'une trace. */
   reverseTrack: (id: string) => void;
+  /** Recadre une trace dans le temps (s coupées au début / à la fin). */
+  trimTrack: (id: string, trimStartS: number, trimEndS: number) => void;
   /** Convertit une trace en route ou inversement. */
   convertTrackKind: (id: string) => void;
   /** Fusionne les traces visibles en une seule. */
@@ -209,6 +212,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   reverseTrack: (id) => get().applyEdit((p) => opReverseTrack(p, id)),
+  trimTrack: (id, trimStartS, trimEndS) =>
+    get().applyEdit((p) => opTrimTrackTime(p, id, trimStartS, trimEndS)),
   convertTrackKind: (id) => get().applyEdit((p) => opConvertKind(p, id)),
   mergeVisibleTracks: () => {
     const proj = get().project;

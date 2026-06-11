@@ -770,14 +770,24 @@ body {
   gap: 3px;
   margin-left: auto;
   padding: 1px 8px;
+  border: none;
   border-radius: var(--r-pill);
   background: var(--accent-soft);
   color: var(--accent-hot);
+  font: inherit;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--t-fast) ease,
+    color var(--t-fast) ease;
+}
+.track-badge-activity:hover {
+  background: var(--accent);
+  color: #fff;
 }
 /* Actions empilées à droite, révélées au survol de la carte. */
 .track-card-actions {
@@ -1199,6 +1209,157 @@ body {
 .dialog select,
 .wpt-field select {
   font: inherit;
+}
+
+/* ===== Analyse d'activité ===== */
+.activity-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.activity-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+}
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+.activity-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  animation: rise-in 0.3s var(--ease-out) backwards;
+}
+.activity-card:nth-child(2n) {
+  animation-delay: 0.04s;
+}
+.activity-card:nth-child(3n) {
+  animation-delay: 0.08s;
+}
+.activity-card-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+.activity-card-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.activity-section {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+.activity-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-2);
+  margin-bottom: 8px;
+}
+.hr-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hr-zone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+}
+.hr-zone-label {
+  width: 22px;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.hr-zone-track {
+  flex: 1 1 auto;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+.hr-zone-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--t-med) var(--ease-out);
+}
+.hr-zone-time {
+  width: 58px;
+  text-align: right;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.splits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.split-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+}
+.split-km {
+  width: 24px;
+  text-align: right;
+  color: var(--ink-3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.split-track {
+  flex: 1 1 auto;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+.split-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  opacity: 0.75;
+  transition: width var(--t-med) var(--ease-out);
+}
+.split-time {
+  width: 46px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.split-ascent {
+  width: 56px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--success);
+  font-size: 10.5px;
+}
+.activity-trim-hint {
+  margin-top: 6px;
+  font-size: 11px;
 }
 
 /* ===== Marqueurs de waypoints (POI) ===== */

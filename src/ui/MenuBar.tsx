@@ -67,6 +67,7 @@ export function MenuBar(): ReactElement {
   const setSplitOpen = useUiStore((s) => s.setSplitOpen);
   const setSimplifyOpen = useUiStore((s) => s.setSimplifyOpen);
   const setSmoothOpen = useUiStore((s) => s.setSmoothOpen);
+  const setActivityOpen = useUiStore((s) => s.setActivityOpen);
 
   const [online, setOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true,
@@ -447,6 +448,12 @@ export function MenuBar(): ReactElement {
 
       <Menu label="Outils">
         <MenuItem label="Rechercher un lieu…" onSelect={() => setSearchOpen(true)} />
+        <MenuSeparator />
+        <MenuItem
+          label="Analyse d'activité…"
+          onSelect={() => setActivityOpen(true)}
+          disabled={!hasSelection}
+        />
         <MenuSeparator />
         <MenuItem
           label="Inverser le sens"

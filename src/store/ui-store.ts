@@ -4,6 +4,14 @@ import { create } from "zustand";
 export type Theme = "light" | "dark" | "auto";
 
 const THEME_KEY = "gmap-theme";
+const HR_MAX_KEY = "gmap-hr-max";
+
+/** Lit la FC max persistée (repli 190, borné 120-230). */
+function loadHrMax(): number {
+  if (typeof localStorage === "undefined") return 190;
+  const value = Number(localStorage.getItem(HR_MAX_KEY));
+  return Number.isFinite(value) && value >= 120 && value <= 230 ? value : 190;
+}
 
 /** Lit le thème persisté (repli « auto »). */
 function loadTheme(): Theme {
@@ -51,6 +59,12 @@ interface UiState {
   /** Gestionnaire des cartes hors-ligne ouvert. */
   offlineZonesOpen: boolean;
   setOfflineZonesOpen: (open: boolean) => void;
+  /** Panneau d'analyse d'activité ouvert. */
+  activityOpen: boolean;
+  setActivityOpen: (open: boolean) => void;
+  /** FC max utilisée pour les zones cardio (persistée). */
+  hrMax: number;
+  setHrMax: (hrMax: number) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -79,4 +93,13 @@ export const useUiStore = create<UiState>((set) => ({
   setExportOpen: (exportOpen) => set({ exportOpen }),
   offlineZonesOpen: false,
   setOfflineZonesOpen: (offlineZonesOpen) => set({ offlineZonesOpen }),
+  activityOpen: false,
+  setActivityOpen: (activityOpen) => set({ activityOpen }),
+  hrMax: loadHrMax(),
+  setHrMax: (hrMax) => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(HR_MAX_KEY, String(hrMax));
+    }
+    set({ hrMax });
+  },
 }));
