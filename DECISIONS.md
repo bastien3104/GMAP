@@ -193,6 +193,21 @@
 - **FIT** (binaire) = **7a-bis** (encodeur + `save_binary_file`). Puis waypoints,
   géocodage, photos EXIF.
 
+## 2026-06-11 — Phases 7c (Géocodage) & 7d (Photos EXIF)
+- **Géocodage = Géoplateforme** (`/geocodage/search`, index `address,poi`), cohérent avec
+  la stack IGN. Appel via commande Rust `geocode_online` (mirroir d'`elevation_online`,
+  évite le CORS) ; parsing GeoJSON pur et testé. Hors-ligne = dégradation gracieuse.
+- **Recherche** flottante (haut-centre carte), suggestions débouncées (300 ms) ; un résultat
+  recentre (`flyTo`) ou pose un POI.
+- **EXIF = parseur pur maison, zéro dépendance** (pas d'ajout de lib) : lecture ciblée
+  JPEG APP1 → TIFF → IFD GPS (0x8825) + sous-IFD Exif (0x8769, DateTimeOriginal). Robuste
+  aux fichiers non conformes (try/catch → résultat partiel). Testé via un JPEG/EXIF
+  construit à la main.
+- **Photo → POI** : position GPS si présente ; sinon **corrélation temporelle** sur une
+  trace horodatée (`trackPointAtTime`, interpolation linéaire). Les temps « nus » (EXIF sans
+  fuseau) sont lus comme UTC pour rester comparables aux temps GPX. Import groupé en une
+  seule entrée d'historique (`addWaypoints`). Symbole « photo ».
+
 ## 2026-06-11 — Phase 7b (Waypoints / POI)
 - **Ops pures** `core/edit/waypoint-ops.ts` (add/update/move/remove, immuables, testées) ;
   `createWaypoint` + `WAYPOINT_SYMBOLS` (jeu logique rando/canoë : sommet, eau, bivouac…)

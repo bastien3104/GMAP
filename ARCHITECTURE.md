@@ -36,6 +36,8 @@ GMAP/
 │  │  ├─ edit/              # opérations pures (track-ops, point-ops, draw-ops, transform-ops, waypoint-ops)
 │  │  ├─ geo/               # stats, Naismith, profil, simplify (RDP), smooth, elevation-clean (+ tests)
 │  │  ├─ elevation/         # client altimétrique online (+ tests)
+│  │  ├─ geocode/           # client de géocodage Géoplateforme (+ tests)
+│  │  ├─ exif/              # lecture EXIF GPS/date + import photos→POI (purs, + tests)
 │  │  ├─ gpx/               # import/export GPX
 │  │  │  ├─ parse-gpx.ts    # GPX → modèle (tolérant)
 │  │  │  ├─ build-gpx.ts    # modèle → GPX 1.1
@@ -57,6 +59,7 @@ GMAP/
 │  │  ├─ LayersPanel.tsx    # dock gauche rétractable : calques + points d'intérêt
 │  │  ├─ ProfilePanel.tsx   # dock bas repliable : stats + Naismith + profil SVG interactif
 │  │  ├─ WaypointEditor.tsx # éditeur d'un POI (nom/symbole/altitude/note)
+│  │  ├─ SearchBox.tsx      # recherche flottante (géocodage) : recentrer / poser un POI
 │  │  ├─ DownloadDialog.tsx # dialogue de téléchargement de zone offline
 │  │  └─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
 │  └─ offline/              # cache offline
@@ -127,6 +130,18 @@ itinéraire Géoplateforme. L'appel HTTP passe par la commande Rust `route_onlin
 `reqwest`, évite le CORS) ; le parsing est en TS pur testé (`core/routing/itinerary.ts`).
 Échec réseau → segment droit (dégradation gracieuse). Le moteur offline **BRouter**
 (prioritaire) viendra en 4b-ii.
+
+**Recherche / géocodage** (Phase 7c) : `SearchBox` interroge le géocodage Géoplateforme
+(`core/geocode`, débouncé) via la commande Rust `geocode_online` (évite le CORS) ; un
+résultat recentre la carte (`map-ref.flyTo`) ou pose un POI à sa position. Hors-ligne →
+message discret, jamais de crash.
+
+**Photos EXIF → POI** (Phase 7d) : `core/exif` lit *sans dépendance* la position GPS et la
+date d'une photo JPEG (`parseExifGps` : APP1→TIFF→IFD GPS/Exif). `photoToWaypoint` crée un
+POI à la position GPS ; à défaut, si la photo est horodatée et qu'une trace porte des
+`time`, la position est **interpolée par corrélation temporelle** (`trackPointAtTime`).
+L'import (Fichier ▸ Importer des photos…) ajoute le lot en une seule entrée d'historique
+(`addWaypoints`) et affiche un bilan (géolocalisées / corrélées / ignorées).
 
 **Statistiques & altitude** (Phase 5a) : `core/geo` calcule distance/D+/D-/pente
 (`stats.ts`) et la durée (`naismith.ts`) ; `StatsPanel` les affiche pour la trace
