@@ -193,6 +193,19 @@
 - **FIT** (binaire) = **7a-bis** (encodeur + `save_binary_file`). Puis waypoints,
   géocodage, photos EXIF.
 
+## 2026-06-11 — Phase 8 (Finition : thème, raccourcis, perf, empaquetage)
+- **Thème clair/sombre/auto** : `data-theme` sur `<html>`, le mode « auto » est résolu en
+  JS (`useTheme` + `matchMedia`) de sorte que le CSS ne cible que `[data-theme="dark"]`
+  (pas de duplication clair/sombre). Pré-application dans `index.html` (anti-flash).
+  Persisté dans `localStorage` (`gmap-theme`).
+- **Raccourcis** : `Ctrl+O/E` (ouvrir/exporter) et `d/e/p/?` portés là où vivent les
+  actions (`MenuBar`), `Ctrl+F` dans `SearchBox` ; aide listée dans `ShortcutsHelp`.
+- **Perf build** : `manualChunks` (MapLibre / vendor / app). MapLibre seul ≈ 1 Mo
+  (inscticable) → `chunkSizeWarningLimit` relevé plutôt que faux découpage.
+- **Empaquetage = NSIS `currentUser`** (et non MSI/WiX) : installation **sans droits
+  admin**, indispensable sur ce poste (cf. [[gmap-env-constraints]]). `tauri build` non
+  lancé pour l'instant (disque serré) — configuration prête.
+
 ## 2026-06-11 — Phases 7c (Géocodage) & 7d (Photos EXIF)
 - **Géocodage = Géoplateforme** (`/geocodage/search`, index `address,poi`), cohérent avec
   la stack IGN. Appel via commande Rust `geocode_online` (mirroir d'`elevation_online`,

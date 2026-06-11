@@ -60,6 +60,8 @@ GMAP/
 │  │  ├─ ProfilePanel.tsx   # dock bas repliable : stats + Naismith + profil SVG interactif
 │  │  ├─ WaypointEditor.tsx # éditeur d'un POI (nom/symbole/altitude/note)
 │  │  ├─ SearchBox.tsx      # recherche flottante (géocodage) : recentrer / poser un POI
+│  │  ├─ ShortcutsHelp.tsx  # overlay d'aide des raccourcis clavier
+│  │  ├─ useTheme.ts        # applique le thème clair/sombre/auto (data-theme)
 │  │  ├─ DownloadDialog.tsx # dialogue de téléchargement de zone offline
 │  │  └─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
 │  └─ offline/              # cache offline
@@ -142,6 +144,15 @@ POI à la position GPS ; à défaut, si la photo est horodatée et qu'une trace 
 `time`, la position est **interpolée par corrélation temporelle** (`trackPointAtTime`).
 L'import (Fichier ▸ Importer des photos…) ajoute le lot en une seule entrée d'historique
 (`addWaypoints`) et affiche un bilan (géolocalisées / corrélées / ignorées).
+
+**Thème, raccourcis, perf, empaquetage** (Phase 8) : thème **clair/sombre/auto** persistant
+(`ui-store.theme` + `useTheme` qui pose `data-theme` sur `<html>` ; auto résolu via
+`matchMedia`, pré-appliqué dans `index.html` pour éviter le flash ; CSS sombre en
+`[data-theme="dark"]`). **Raccourcis** globaux (`Ctrl+O/E`, `Ctrl+F`, `d/e/p`, `?`) + overlay
+`ShortcutsHelp` (menu Aide). **Build** découpé (`vite.config` `manualChunks` : MapLibre /
+vendors / app). **Empaquetage Windows** : `tauri.conf.json` bundle **NSIS** en mode
+`currentUser` (installation **sans droits admin**, conforme à la contrainte poste) ;
+`pnpm tauri build` produit l'installeur.
 
 **Statistiques & altitude** (Phase 5a) : `core/geo` calcule distance/D+/D-/pente
 (`stats.ts`) et la durée (`naismith.ts`) ; `StatsPanel` les affiche pour la trace
