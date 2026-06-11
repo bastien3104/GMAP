@@ -140,6 +140,13 @@ export function IconChevronDown(props: IconProps): ReactElement {
   return base(props, [<path key="p" d="M6 9.5 L12 15.5 L18 9.5" />]);
 }
 
+/** Battement / activité (badge des imports FIT). */
+export function IconPulse(props: IconProps): ReactElement {
+  return base(props, [
+    <path key="p" d="M2.5 12 H7 L9.5 6 L14.5 18 L17 12 H21.5" />,
+  ]);
+}
+
 export function IconArrowUp(props: IconProps): ReactElement {
   return base(props, [
     <path key="l" d="M12 19 V5" />,

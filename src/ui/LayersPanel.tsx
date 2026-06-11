@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { waypointSymbol, type Track, type Waypoint } from "../core/model";
+import {
+  ACTIVITY_SPORT_LABELS,
+  waypointSymbol,
+  type Track,
+  type Waypoint,
+} from "../core/model";
 import { trackStats } from "../core/geo/stats";
+import { activityStats, type ActivityStats } from "../core/geo/activity-stats";
 import { useProjectStore } from "../store/project-store";
 import { useUiStore } from "../store/ui-store";
 import { flyTo } from "../map/map-ref";
@@ -11,6 +17,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconClose,
+  IconPulse,
 } from "./icons";
 
 /**
@@ -135,6 +142,14 @@ function formatDistance(meters: number): string {
     : `${Math.round(meters)} m`;
 }
 
+/** Formate une durée en secondes (UI) : « 2 h 34 » ou « 48 min ». */
+function formatDuration(seconds: number): string {
+  const totalMinutes = Math.round(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours} h ${String(minutes).padStart(2, "0")}` : `${minutes} min`;
+}
+
 /** Carte d'une trace (nom, distance, D+) ; nom et couleur commités au blur. */
 function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
   const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
@@ -152,6 +167,11 @@ function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
 
   const isSelected = track.id === selectedTrackId;
   const stats = useMemo(() => trackStats(track), [track]);
+  const activity = track.activity;
+  const aStats: ActivityStats | null = useMemo(
+    () => (activity === undefined ? null : activityStats(track)),
+    [track, activity],
+  );
 
   const cardClass = [
     "track-card",
@@ -203,9 +223,25 @@ function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
           <span className="track-stat ascent" title="Dénivelé positif">
             ↗ {Math.round(stats.ascent)} m
           </span>
-          <span className="track-kind">
-            {track.kind === "route" ? "route" : "trace"}
-          </span>
+          {aStats?.movingTime != null && (
+            <span className="track-stat" title="Temps en mouvement">
+              ⏱ {formatDuration(aStats.movingTime)}
+            </span>
+          )}
+          {aStats?.hrAvg != null && (
+            <span className="track-stat hr" title="Fréquence cardiaque moyenne">
+              ♥ {Math.round(aStats.hrAvg)}
+            </span>
+          )}
+          {activity !== undefined ? (
+            <span className="track-badge-activity" title={activity.device ?? "Activité"}>
+              <IconPulse size={11} /> {ACTIVITY_SPORT_LABELS[activity.sport]}
+            </span>
+          ) : (
+            <span className="track-kind">
+              {track.kind === "route" ? "route" : "trace"}
+            </span>
+          )}
         </div>
       </div>
       <div className="track-card-actions">

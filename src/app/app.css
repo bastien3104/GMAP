@@ -745,6 +745,24 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
+.track-stat.hr {
+  color: var(--danger);
+}
+.track-badge-activity {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent-hot);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
 /* Actions empilées à droite, révélées au survol de la carte. */
 .track-card-actions {
   flex: 0 0 auto;

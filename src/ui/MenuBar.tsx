@@ -4,6 +4,7 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { BASEMAPS } from "../map/basemaps";
 import { GpxParseError, parseGpx } from "../core/gpx/parse-gpx";
+import { FitParseError, parseFitProject } from "../core/import/parse-fit";
 import { buildGpx } from "../core/gpx/build-gpx";
 import { buildGeoJson } from "../core/export/geojson-export";
 import { buildKml } from "../core/export/kml";
@@ -143,8 +144,13 @@ export function MenuBar(): ReactElement {
   }
 
   async function importFile(file: File): Promise<void> {
-    const text = await file.text();
-    importProject(parseGpx(text, file.name.replace(/\.gpx$/i, "")));
+    if (/\.fit$/i.test(file.name)) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      importProject(parseFitProject(bytes, file.name.replace(/\.fit$/i, "")));
+    } else {
+      const text = await file.text();
+      importProject(parseGpx(text, file.name.replace(/\.gpx$/i, "")));
+    }
   }
 
   async function importFiles(files: File[]): Promise<void> {
@@ -155,13 +161,13 @@ export function MenuBar(): ReactElement {
         imported += 1;
       } catch (cause) {
         flash(
-          cause instanceof GpxParseError
+          cause instanceof GpxParseError || cause instanceof FitParseError
             ? `${file.name} : ${cause.message}`
             : `Échec de l'import de ${file.name}.`,
         );
       }
     }
-    if (imported > 1) flash(`${imported} fichiers GPX importés.`);
+    if (imported > 1) flash(`${imported} fichiers importés.`);
   }
 
   function onInputChange(event: ChangeEvent<HTMLInputElement>): void {
@@ -297,7 +303,7 @@ export function MenuBar(): ReactElement {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".gpx,application/gpx+xml"
+        accept=".gpx,.fit,application/gpx+xml"
         multiple
         onChange={onInputChange}
         hidden
@@ -313,7 +319,7 @@ export function MenuBar(): ReactElement {
 
       <Menu label="Fichier">
         <MenuItem
-          label="Ouvrir des GPX…"
+          label="Ouvrir des traces (GPX, FIT)…"
           onSelect={() => fileInputRef.current?.click()}
         />
         <MenuItem

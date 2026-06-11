@@ -10,7 +10,11 @@
 /** Nature d'une trace : `track` (trk GPX) ou `route` (rte GPX). */
 export type TrackKind = "track" | "route";
 
-/** Un point d'une trace. `ele` (altitude, m) et `time` (ISO 8601) sont optionnels. */
+/**
+ * Un point d'une trace. `ele` (altitude, m) et `time` (ISO 8601) sont optionnels.
+ * Les champs capteurs (FC, cadence, puissance, température, vitesse) proviennent
+ * des imports FIT (« activités ») ; ils sont absents pour un GPX classique.
+ */
 export interface TrackPoint {
   /** Latitude en degrés décimaux (WGS84). */
   lat: number;
@@ -20,7 +24,56 @@ export interface TrackPoint {
   ele?: number;
   /** Horodatage ISO 8601, si connu. */
   time?: string;
+  /** Fréquence cardiaque (bpm), si capteur présent. */
+  hr?: number;
+  /** Cadence (rpm vélo / spm course), si capteur présent. */
+  cadence?: number;
+  /** Puissance (W), si capteur présent. */
+  power?: number;
+  /** Température (°C), si capteur présent. */
+  temp?: number;
+  /** Vitesse instantanée (m/s), si fournie par l'appareil. */
+  speed?: number;
 }
+
+/** Sports d'activité reconnus (clé stable, issue de l'enum FIT). */
+export type ActivitySport =
+  | "generic"
+  | "running"
+  | "cycling"
+  | "swimming"
+  | "walking"
+  | "hiking"
+  | "mountaineering"
+  | "rowing"
+  | "paddling"
+  | "kayaking"
+  | "xc-skiing";
+
+/** Métadonnées d'activité (import FIT) attachées à une trace. */
+export interface ActivityMeta {
+  /** Sport de l'activité. */
+  sport: ActivitySport;
+  /** Début de l'activité (ISO 8601), si connu. */
+  startTime?: string;
+  /** Appareil d'enregistrement (fabricant), si connu. */
+  device?: string;
+}
+
+/** Libellés français des sports d'activité. */
+export const ACTIVITY_SPORT_LABELS: Record<ActivitySport, string> = {
+  generic: "Activité",
+  running: "Course à pied",
+  cycling: "Vélo",
+  swimming: "Natation",
+  walking: "Marche",
+  hiking: "Randonnée",
+  mountaineering: "Alpinisme",
+  rowing: "Aviron",
+  paddling: "Canoë",
+  kayaking: "Kayak",
+  "xc-skiing": "Ski de fond",
+};
 
 /**
  * Une trace : une ou plusieurs segments ordonnés.
@@ -40,6 +93,8 @@ export interface Track {
   visible: boolean;
   /** Couleur d'affichage (CSS), ex. `#e85d04`. */
   color: string;
+  /** Métadonnées d'activité (présentes pour un import FIT). */
+  activity?: ActivityMeta;
 }
 
 /** Un point d'intérêt (waypoint / POI). */
@@ -163,11 +218,12 @@ export interface CreateTrackOptions {
   segments?: TrackPoint[][];
   visible?: boolean;
   color?: string;
+  activity?: ActivityMeta;
 }
 
 /** Crée une trace avec des valeurs par défaut raisonnables. */
 export function createTrack(options: CreateTrackOptions = {}): Track {
-  return {
+  const track: Track = {
     id: crypto.randomUUID(),
     name: options.name ?? "Trace",
     kind: options.kind ?? "track",
@@ -175,6 +231,8 @@ export function createTrack(options: CreateTrackOptions = {}): Track {
     visible: options.visible ?? true,
     color: options.color ?? DEFAULT_TRACK_COLORS[0] ?? "#e85d04",
   };
+  if (options.activity !== undefined) track.activity = options.activity;
+  return track;
 }
 
 /** Nombre total de points d'une trace (tous segments confondus). */
