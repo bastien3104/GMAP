@@ -33,8 +33,11 @@ GMAP/
 │  ├─ core/                 # logique métier pure (testée, sans UI)
 │  │  ├─ model.ts           # types Project / Track / Waypoint / TrackPoint + helpers
 │  │  ├─ tiles/             # math de tuiles Web Mercator (+ tests)
-│  │  ├─ edit/              # opérations pures (track-ops, point-ops, draw-ops, transform-ops, waypoint-ops)
-│  │  ├─ geo/               # stats, Naismith, profil, simplify (RDP), smooth, elevation-clean (+ tests)
+│  │  ├─ edit/              # opérations pures (track-ops, point-ops, draw-ops, transform-ops,
+│  │  │  │                  #   waypoint-ops, activity-ops : recadrage temporel)
+│  │  ├─ geo/               # stats, Naismith, profil, simplify (RDP), smooth, elevation-clean,
+│  │  │  │                  #   activity-stats (temps/vitesses/VAM/zones cardio/splits) (+ tests)
+│  │  ├─ import/            # parse-fit : décodeur FIT pur et tolérant (+ tests)
 │  │  ├─ elevation/         # client altimétrique online (+ tests)
 │  │  ├─ geocode/           # client de géocodage Géoplateforme (+ tests)
 │  │  ├─ exif/              # lecture EXIF GPS/date + import photos→POI (purs, + tests)
@@ -45,6 +48,8 @@ GMAP/
 │  │  │  └─ __fixtures__/   # GPX d'exemple pour les tests
 │  │  ├─ geojson/           # modèle → GeoJSON (pivot d'affichage)
 │  │  │  ├─ to-geojson.ts
+│  │  │  ├─ slope-geojson.ts   # arêtes + pente (coloration)
+│  │  │  ├─ metric-geojson.ts  # arêtes + vitesse/FC (coloration par métrique)
 │  │  │  └─ to-geojson.test.ts
 │  │  ├─ export/            # exports GeoJSON / KML / TCX / FIT (+ tests)
 │  │  └─ routing/           # client itinéraire (Géoplateforme online) (+ BRouter en 4b-ii)
@@ -64,6 +69,7 @@ GMAP/
 │  │  ├─ ShortcutsHelp.tsx  # overlay d'aide des raccourcis clavier
 │  │  ├─ ExportDialog.tsx   # export sélectif (format + traces + POI)
 │  │  ├─ OfflineZonesPanel.tsx # gestionnaire des cartes hors-ligne (façon Apple Plans)
+│  │  ├─ ActivityDialog.tsx # analyse d'activité (stats, zones cardio, splits, recadrage)
 │  │  ├─ icons.tsx          # jeu d'icônes SVG maison (motif « trace », currentColor)
 │  │  ├─ useTheme.ts        # applique le thème clair/sombre/auto (data-theme)
 │  │  ├─ DownloadDialog.tsx # dialogue de téléchargement de zone offline
