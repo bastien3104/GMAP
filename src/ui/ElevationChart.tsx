@@ -6,13 +6,35 @@ import { slopeColor } from "../map/slope-layers";
 const HEIGHT = 150;
 const PAD = { top: 12, right: 14, bottom: 22, left: 48 };
 
+/** Courbes capteurs superposables au profil altimétrique. */
+export interface ChartSeries {
+  speed: boolean;
+  hr: boolean;
+  cadence: boolean;
+}
+
+/** Aucune courbe superposée (traces sans capteurs). */
+export const NO_SERIES: ChartSeries = { speed: false, hr: false, cadence: false };
+
 interface ElevationChartProps {
   points: ProfilePoint[];
   /** Colore la courbe par pente (sinon bleu uni). */
   colorBySlope: boolean;
+  /** Courbes capteurs à superposer (normalisées sur la hauteur du graphe). */
+  series: ChartSeries;
   /** Appelé au survol (point survolé ou `null`) — pour synchroniser la carte. */
   onHover: (point: ProfilePoint | null) => void;
 }
+
+/** Métriques superposables : clé du point de profil + classe CSS de la courbe. */
+const OVERLAYS: ReadonlyArray<{
+  key: "speed" | "hr" | "cadence";
+  className: string;
+}> = [
+  { key: "speed", className: "elev-overlay-speed" },
+  { key: "hr", className: "elev-overlay-hr" },
+  { key: "cadence", className: "elev-overlay-cadence" },
+];
 
 /**
  * Graphe de profil altimétrique « façon app de rando » : aire dégradée, grille, axes,
@@ -22,6 +44,7 @@ interface ElevationChartProps {
 export function ElevationChart({
   points,
   colorBySlope,
+  series,
   onHover,
 }: ElevationChartProps): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -177,6 +200,13 @@ export function ElevationChart({
             />
           )}
 
+          {OVERLAYS.filter((o) => series[o.key]).map((o) => {
+            const path = overlayPath(points, o.key, xOf, PAD.top, innerH);
+            return path === null ? null : (
+              <polyline key={o.key} points={path} className={`elev-overlay ${o.className}`} />
+            );
+          })}
+
           {hp !== null && (
             <g>
               <line
@@ -203,6 +233,15 @@ export function ElevationChart({
             {grade > 0 ? "+" : ""}
             {grade.toFixed(0)} %
           </span>
+          {series.speed && hp.speed !== undefined && (
+            <span className="tip-speed">{(hp.speed * 3.6).toFixed(1)} km/h</span>
+          )}
+          {series.hr && hp.hr !== undefined && (
+            <span className="tip-hr">{Math.round(hp.hr)} bpm</span>
+          )}
+          {series.cadence && hp.cadence !== undefined && (
+            <span className="tip-cadence">{Math.round(hp.cadence)} /min</span>
+          )}
         </div>
       )}
     </div>
@@ -211,6 +250,39 @@ export function ElevationChart({
 
 function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
+}
+
+/**
+ * Polyligne d'une métrique capteur, normalisée sur la hauteur du graphe
+ * (min→bas, max→haut). `null` si moins de 2 points portent la métrique.
+ */
+function overlayPath(
+  points: ProfilePoint[],
+  key: "speed" | "hr" | "cadence",
+  xOf: (d: number) => number,
+  top: number,
+  innerH: number,
+): string | null {
+  let min = Infinity;
+  let max = -Infinity;
+  let count = 0;
+  for (const p of points) {
+    const v = p[key];
+    if (v === undefined) continue;
+    count += 1;
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  if (count < 2) return null;
+  const range = Math.max(max - min, 1e-6);
+  const parts: string[] = [];
+  for (const p of points) {
+    const v = p[key];
+    if (v === undefined) continue;
+    const y = top + innerH - ((v - min) / range) * innerH;
+    parts.push(`${xOf(p.distance)},${y}`);
+  }
+  return parts.join(" ");
 }
 
 function gradeBetween(a: ProfilePoint, b: ProfilePoint): number {

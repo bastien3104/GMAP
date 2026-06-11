@@ -6,25 +6,51 @@ import type { Track } from "../model";
  * La distance est cumulée le long de la trace (sans pont entre segments disjoints).
  */
 
-/** Un point du profil : distance cumulée (m), altitude (m), position. */
+/**
+ * Un point du profil : distance cumulée (m), altitude (m), position, et
+ * métriques optionnelles (vitesse m/s, FC bpm, cadence) pour les activités.
+ */
 export interface ProfilePoint {
   distance: number;
   ele: number;
   lon: number;
   lat: number;
+  /** Vitesse (m/s) : capteur si présent, sinon dérivée des horodatages. */
+  speed?: number;
+  /** Fréquence cardiaque (bpm), si capteur. */
+  hr?: number;
+  /** Cadence (rpm/spm), si capteur. */
+  cadence?: number;
 }
 
-/** Construit le profil (points avec altitude) d'une trace. */
+/** Construit le profil (points avec altitude + métriques) d'une trace. */
 export function buildProfile(track: Track): ProfilePoint[] {
   const points: ProfilePoint[] = [];
   let cumulative = 0;
   for (const segment of track.segments) {
     for (let i = 0; i < segment.length; i++) {
       const p = segment[i]!;
-      if (i > 0) cumulative += haversine(segment[i - 1]!, p);
-      if (p.ele !== undefined) {
-        points.push({ distance: cumulative, ele: p.ele, lon: p.lon, lat: p.lat });
+      let edge = 0;
+      if (i > 0) {
+        edge = haversine(segment[i - 1]!, p);
+        cumulative += edge;
       }
+      if (p.ele === undefined) continue;
+      const point: ProfilePoint = {
+        distance: cumulative,
+        ele: p.ele,
+        lon: p.lon,
+        lat: p.lat,
+      };
+      if (p.speed !== undefined) {
+        point.speed = p.speed;
+      } else if (i > 0 && p.time !== undefined && segment[i - 1]!.time !== undefined) {
+        const dt = (Date.parse(p.time) - Date.parse(segment[i - 1]!.time!)) / 1000;
+        if (Number.isFinite(dt) && dt > 0) point.speed = edge / dt;
+      }
+      if (p.hr !== undefined) point.hr = p.hr;
+      if (p.cadence !== undefined) point.cadence = p.cadence;
+      points.push(point);
     }
   }
   return points;

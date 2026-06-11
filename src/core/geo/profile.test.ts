@@ -26,6 +26,24 @@ describe("buildProfile", () => {
     });
     expect(buildProfile(track)).toHaveLength(0);
   });
+
+  it("transporte les capteurs et dérive la vitesse des horodatages", () => {
+    const track = createTrack({
+      segments: [
+        [
+          { lon: 0, lat: 0, ele: 100, time: "2026-06-01T08:00:00Z", hr: 120, cadence: 80 },
+          { lon: 0, lat: 0.001, ele: 110, time: "2026-06-01T08:01:00Z", hr: 130 },
+          { lon: 0, lat: 0.002, ele: 120, time: "2026-06-01T08:02:00Z", speed: 3.5 },
+        ],
+      ],
+    });
+    const profile = buildProfile(track);
+    expect(profile[0]!.hr).toBe(120);
+    expect(profile[0]!.cadence).toBe(80);
+    expect(profile[0]!.speed).toBeUndefined(); // premier point : pas d'arête
+    expect(profile[1]!.speed).toBeCloseTo(111.195 / 60, 2); // dérivée du temps
+    expect(profile[2]!.speed).toBe(3.5); // capteur prioritaire
+  });
 });
 
 describe("slopeEdges", () => {

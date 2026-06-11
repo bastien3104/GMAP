@@ -25,6 +25,15 @@
   --danger: #d63a2f;
   --danger-soft: rgba(214, 58, 47, 0.12);
 
+  /* --- Métriques d'activité (courbes capteurs) --- */
+  --metric-speed: #0d8f81;
+  --metric-hr: #d4537e;
+  --metric-cadence: #7f77dd;
+  /* Variantes pour l'infobulle (fond inversé par rapport au thème). */
+  --metric-speed-tip: #2ec4b6;
+  --metric-hr-tip: #ed93b1;
+  --metric-cadence-tip: #afa9ec;
+
   /* --- Surfaces & encres (thème clair « carte papier ») --- */
   --bg: #f1ede4;
   --surface: #faf8f3;
@@ -80,6 +89,13 @@
   --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.5);
   --shadow-3: 0 16px 48px rgba(0, 0, 0, 0.6);
   --topo-lines: rgba(255, 255, 255, 0.04);
+
+  --metric-speed: #2ec4b6;
+  --metric-hr: #ed93b1;
+  --metric-cadence: #afa9ec;
+  --metric-speed-tip: #0d8f81;
+  --metric-hr-tip: #d4537e;
+  --metric-cadence-tip: #7f77dd;
 }
 
 * {
@@ -918,6 +934,47 @@ body {
   color: var(--accent-hot);
 }
 
+/* Pills de courbes capteurs (Vitesse / FC / Cadence). */
+.profile-series {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.series-pill {
+  padding: 2px 11px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  color: var(--ink-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  transition:
+    color var(--t-fast) ease,
+    border-color var(--t-fast) ease,
+    background var(--t-fast) ease,
+    box-shadow var(--t-fast) ease;
+}
+.series-pill.speed:hover,
+.series-pill.speed.active {
+  color: var(--metric-speed);
+  border-color: var(--metric-speed);
+}
+.series-pill.hr:hover,
+.series-pill.hr.active {
+  color: var(--metric-hr);
+  border-color: var(--metric-hr);
+}
+.series-pill.cadence:hover,
+.series-pill.cadence.active {
+  color: var(--metric-cadence);
+  border-color: var(--metric-cadence);
+}
+.series-pill.active {
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
 /* ===== Graphe de profil ===== */
 .elev-chart {
   position: relative;
@@ -946,6 +1003,34 @@ body {
   fill: var(--accent);
   stroke: var(--surface-raised);
   stroke-width: 1.5;
+}
+.elev-overlay {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  opacity: 0.9;
+  animation: fade-in var(--t-med) ease;
+}
+.elev-overlay-speed {
+  stroke: var(--metric-speed);
+}
+.elev-overlay-hr {
+  stroke: var(--metric-hr);
+}
+.elev-overlay-cadence {
+  stroke: var(--metric-cadence);
+}
+.elev-tooltip .tip-speed {
+  color: var(--metric-speed-tip);
+  opacity: 1;
+}
+.elev-tooltip .tip-hr {
+  color: var(--metric-hr-tip);
+  opacity: 1;
+}
+.elev-tooltip .tip-cadence {
+  color: var(--metric-cadence-tip);
+  opacity: 1;
 }
 .elev-tooltip {
   position: absolute;

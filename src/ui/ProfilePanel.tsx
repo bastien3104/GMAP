@@ -7,7 +7,7 @@ import { trackStats } from "../core/geo/stats";
 import { naismithDuration } from "../core/geo/naismith";
 import { buildProfile } from "../core/geo/profile";
 import { SLOPE_LEGEND } from "../map/slope-layers";
-import { ElevationChart } from "./ElevationChart";
+import { ElevationChart, NO_SERIES, type ChartSeries } from "./ElevationChart";
 import { IconChevronDown, IconChevronUp } from "./icons";
 
 /**
@@ -23,12 +23,26 @@ export function ProfilePanel(): ReactElement | null {
   const toggleProfile = useUiStore((s) => s.toggleProfile);
 
   const [baseSpeed, setBaseSpeed] = useState(4);
+  const [series, setSeries] = useState<ChartSeries>(NO_SERIES);
 
   const track = project?.tracks.find((t) => t.id === selectedTrackId) ?? null;
   const stats = useMemo(() => (track === null ? null : trackStats(track)), [track]);
   const profile = useMemo(() => (track === null ? [] : buildProfile(track)), [track]);
 
+  // Métriques disponibles sur la trace sélectionnée (pills affichées si présentes).
+  const available = useMemo(
+    () => ({
+      speed: profile.some((p) => p.speed !== undefined),
+      hr: profile.some((p) => p.hr !== undefined),
+      cadence: profile.some((p) => p.cadence !== undefined),
+    }),
+    [profile],
+  );
+
   if (track === null || stats === null) return null;
+
+  const toggleSeries = (key: keyof ChartSeries): void =>
+    setSeries((s) => ({ ...s, [key]: !s[key] }));
 
   const duration = naismithDuration(stats.distance, stats.ascent, stats.descent, {
     baseSpeedKmh: baseSpeed,
@@ -71,6 +85,42 @@ export function ProfilePanel(): ReactElement | null {
           />
           km/h
         </label>
+        {!collapsed && (available.speed || available.hr || available.cadence) && (
+          <span className="profile-series">
+            {available.speed && (
+              <button
+                type="button"
+                className={series.speed ? "series-pill speed active" : "series-pill speed"}
+                onClick={() => toggleSeries("speed")}
+                title="Superposer la vitesse au profil"
+              >
+                Vitesse
+              </button>
+            )}
+            {available.hr && (
+              <button
+                type="button"
+                className={series.hr ? "series-pill hr active" : "series-pill hr"}
+                onClick={() => toggleSeries("hr")}
+                title="Superposer la fréquence cardiaque au profil"
+              >
+                FC
+              </button>
+            )}
+            {available.cadence && (
+              <button
+                type="button"
+                className={
+                  series.cadence ? "series-pill cadence active" : "series-pill cadence"
+                }
+                onClick={() => toggleSeries("cadence")}
+                title="Superposer la cadence au profil"
+              >
+                Cadence
+              </button>
+            )}
+          </span>
+        )}
         {!collapsed && slopeColoring && (
           <span className="slope-legend">
             {SLOPE_LEGEND.map((l) => (
@@ -87,6 +137,7 @@ export function ProfilePanel(): ReactElement | null {
         <ElevationChart
           points={profile}
           colorBySlope={slopeColoring}
+          series={series}
           onHover={(p) => setHoverPoint(p === null ? null : [p.lon, p.lat])}
         />
       )}
