@@ -17,17 +17,35 @@ import { IconChevronDown, IconChevronUp } from "./icons";
 export function ProfilePanel(): ReactElement | null {
   const project = useProjectStore((s) => s.project);
   const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
-  const slopeColoring = useMapStore((s) => s.slopeColoring);
+  const coloring = useMapStore((s) => s.coloring);
+  const slopeColoring = coloring === "slope";
   const setHoverPoint = useMapStore((s) => s.setHoverPoint);
   const collapsed = useUiStore((s) => s.profileCollapsed);
   const toggleProfile = useUiStore((s) => s.toggleProfile);
 
   const [baseSpeed, setBaseSpeed] = useState(4);
   const [series, setSeries] = useState<ChartSeries>(NO_SERIES);
+  const [compareId, setCompareId] = useState<string | null>(null);
 
   const track = project?.tracks.find((t) => t.id === selectedTrackId) ?? null;
   const stats = useMemo(() => (track === null ? null : trackStats(track)), [track]);
   const profile = useMemo(() => (track === null ? [] : buildProfile(track)), [track]);
+
+  // Traces comparables : les autres traces du projet ayant de l'altitude.
+  const compareCandidates = useMemo(
+    () =>
+      (project?.tracks ?? []).filter(
+        (t) =>
+          t.id !== selectedTrackId &&
+          t.segments.some((seg) => seg.some((p) => p.ele !== undefined)),
+      ),
+    [project, selectedTrackId],
+  );
+  const compareTrack = compareCandidates.find((t) => t.id === compareId) ?? null;
+  const compareProfile = useMemo(
+    () => (compareTrack === null ? null : buildProfile(compareTrack)),
+    [compareTrack],
+  );
 
   // Métriques disponibles sur la trace sélectionnée (pills affichées si présentes).
   const available = useMemo(
@@ -121,6 +139,26 @@ export function ProfilePanel(): ReactElement | null {
             )}
           </span>
         )}
+        {!collapsed && compareCandidates.length > 0 && (
+          <label className="profile-ctrl profile-compare">
+            comparer
+            <select
+              value={compareId ?? ""}
+              onChange={(e) => {
+                const v = e.currentTarget.value;
+                setCompareId(v === "" ? null : v);
+              }}
+              title="Superposer le profil d'une autre trace"
+            >
+              <option value="">—</option>
+              {compareCandidates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {!collapsed && slopeColoring && (
           <span className="slope-legend">
             {SLOPE_LEGEND.map((l) => (
@@ -138,6 +176,7 @@ export function ProfilePanel(): ReactElement | null {
           points={profile}
           colorBySlope={slopeColoring}
           series={series}
+          comparePoints={compareProfile}
           onHover={(p) => setHoverPoint(p === null ? null : [p.lon, p.lat])}
         />
       )}

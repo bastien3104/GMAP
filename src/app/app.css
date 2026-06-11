@@ -1021,6 +1021,26 @@ body {
   opacity: 0.9;
   animation: fade-in var(--t-med) ease;
 }
+/* Profil comparé (autre trace) : trait discret en pointillé. */
+.elev-compare {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 4;
+  stroke-linejoin: round;
+  opacity: 0.8;
+  animation: fade-in var(--t-med) ease;
+}
+.profile-compare select {
+  max-width: 140px;
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-raised);
+  color: var(--ink);
+}
 .elev-overlay-speed {
   stroke: var(--metric-speed);
 }

@@ -31,8 +31,11 @@ import {
 } from "./edit-layers";
 import {
   HOVER_SOURCE_ID,
+  SLOPE_COLOR_EXPRESSION,
+  SLOPE_LAYER_ID,
   SLOPE_SOURCE_ID,
   hoverPointLayer,
+  metricColorExpression,
   slopeLineLayer,
 } from "./slope-layers";
 import {
@@ -50,6 +53,8 @@ import { setMapInstance } from "./map-ref";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
 import { slopeFeatureCollection } from "../core/geojson/slope-geojson";
+import { metricFeatureCollection } from "../core/geojson/metric-geojson";
+import { useUiStore } from "../store/ui-store";
 import { deletePoint, insertPoint, movePoint } from "../core/edit/point-ops";
 import { appendPoint, appendPoints } from "../core/edit/draw-ops";
 import { routeSegment } from "../core/routing/itinerary";
@@ -95,7 +100,8 @@ export function MapView(): ReactElement {
   const drawMode = useMapStore((s) => s.drawMode);
   const poiMode = useMapStore((s) => s.poiMode);
   const freehand = useMapStore((s) => s.freehand);
-  const slopeColoring = useMapStore((s) => s.slopeColoring);
+  const coloring = useMapStore((s) => s.coloring);
+  const hrMax = useUiStore((s) => s.hrMax);
   const hoverPoint = useMapStore((s) => s.hoverPoint);
   const previewData = useMapStore((s) => s.previewData);
   const showOfflineZones = useMapStore((s) => s.showOfflineZones);
@@ -205,18 +211,33 @@ export function MapView(): ReactElement {
     }
   }, [project, selectedTrackId, mapReady]);
 
-  // Coloration par pente de la trace sélectionnée.
+  // Coloration de la trace sélectionnée (pente, vitesse ou FC).
   useEffect(() => {
     const map = mapRef.current;
     if (map === null || !mapReady) return;
     const source = map.getSource(SLOPE_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
     if (source === undefined) return;
     const track =
-      slopeColoring && selectedTrackId !== null
+      selectedTrackId !== null
         ? project?.tracks.find((t) => t.id === selectedTrackId)
         : undefined;
-    source.setData(track !== undefined ? slopeFeatureCollection(track) : EMPTY_DATA);
-  }, [slopeColoring, selectedTrackId, project, mapReady]);
+    if (coloring === "none" || track === undefined) {
+      source.setData(EMPTY_DATA);
+      return;
+    }
+    if (coloring === "slope") {
+      source.setData(slopeFeatureCollection(track));
+      map.setPaintProperty(SLOPE_LAYER_ID, "line-color", SLOPE_COLOR_EXPRESSION);
+    } else {
+      const { collection, min, max } = metricFeatureCollection(track, coloring);
+      source.setData(collection);
+      map.setPaintProperty(
+        SLOPE_LAYER_ID,
+        "line-color",
+        metricColorExpression(coloring, min, max, hrMax),
+      );
+    }
+  }, [coloring, selectedTrackId, project, mapReady, hrMax]);
 
   // Aperçu des outils de nettoyage.
   useEffect(() => {

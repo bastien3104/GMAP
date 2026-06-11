@@ -44,8 +44,8 @@ export function MenuBar(): ReactElement {
 
   const activeBasemapId = useMapStore((s) => s.activeBasemapId);
   const setBasemap = useMapStore((s) => s.setBasemap);
-  const slopeColoring = useMapStore((s) => s.slopeColoring);
-  const setSlopeColoring = useMapStore((s) => s.setSlopeColoring);
+  const coloring = useMapStore((s) => s.coloring);
+  const setColoring = useMapStore((s) => s.setColoring);
   const showOfflineZones = useMapStore((s) => s.showOfflineZones);
   const setShowOfflineZones = useMapStore((s) => s.setShowOfflineZones);
   const offline = useMapStore((s) => s.offline);
@@ -416,9 +416,24 @@ export function MenuBar(): ReactElement {
         ))}
         <MenuSeparator />
         <MenuItem
+          label="Coloration : aucune"
+          checked={coloring === "none"}
+          onSelect={() => setColoring("none")}
+        />
+        <MenuItem
           label="Coloration par pente"
-          checked={slopeColoring}
-          onSelect={() => setSlopeColoring(!slopeColoring)}
+          checked={coloring === "slope"}
+          onSelect={() => setColoring("slope")}
+        />
+        <MenuItem
+          label="Coloration par vitesse"
+          checked={coloring === "speed"}
+          onSelect={() => setColoring("speed")}
+        />
+        <MenuItem
+          label="Coloration par FC"
+          checked={coloring === "hr"}
+          onSelect={() => setColoring("hr")}
         />
         <MenuItem
           label="Mode hors-ligne"

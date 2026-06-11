@@ -12,10 +12,8 @@ import {
 import { trackTimeBounds } from "../core/edit/activity-ops";
 import { useProjectStore } from "../store/project-store";
 import { useUiStore } from "../store/ui-store";
+import { HR_ZONE_COLORS } from "../map/slope-layers";
 import { IconPulse } from "./icons";
-
-/** Couleurs des 5 zones cardio (Z1 → Z5). */
-const ZONE_COLORS = ["#85b7eb", "#5dcaa5", "#97c459", "#ef9f27", "#e24b4a"];
 
 function fmtDuration(seconds: number): string {
   const s = Math.round(seconds);
@@ -174,7 +172,7 @@ export function ActivityDialog(): ReactElement | null {
                       className="hr-zone-bar"
                       style={{
                         width: `${zoneTotal > 0 ? (z.seconds / zoneTotal) * 100 : 0}%`,
-                        background: ZONE_COLORS[z.zone - 1],
+                        background: HR_ZONE_COLORS[z.zone - 1],
                       }}
                     />
                   </div>

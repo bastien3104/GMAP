@@ -22,6 +22,8 @@ interface ElevationChartProps {
   colorBySlope: boolean;
   /** Courbes capteurs à superposer (normalisées sur la hauteur du graphe). */
   series: ChartSeries;
+  /** Profil d'une autre trace à comparer (mêmes échelles), ou `null`. */
+  comparePoints?: ProfilePoint[] | null;
   /** Appelé au survol (point survolé ou `null`) — pour synchroniser la carte. */
   onHover: (point: ProfilePoint | null) => void;
 }
@@ -45,6 +47,7 @@ export function ElevationChart({
   points,
   colorBySlope,
   series,
+  comparePoints = null,
   onHover,
 }: ElevationChartProps): ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,13 +66,24 @@ export function ElevationChart({
   const hasData = points.length >= 2;
   const first = points[0];
   const last = points[points.length - 1];
-  const maxDist = hasData && last !== undefined ? Math.max(1, last.distance) : 1;
+  const compare = comparePoints !== null && comparePoints.length >= 2 ? comparePoints : null;
+  const maxDist = Math.max(
+    1,
+    hasData && last !== undefined ? last.distance : 1,
+    compare !== null ? compare[compare.length - 1]!.distance : 0,
+  );
 
   let minEle = Infinity;
   let maxEle = -Infinity;
   for (const p of points) {
     if (p.ele < minEle) minEle = p.ele;
     if (p.ele > maxEle) maxEle = p.ele;
+  }
+  if (compare !== null) {
+    for (const p of compare) {
+      if (p.ele < minEle) minEle = p.ele;
+      if (p.ele > maxEle) maxEle = p.ele;
+    }
   }
   if (!Number.isFinite(minEle)) {
     minEle = 0;
@@ -173,6 +187,13 @@ export function ElevationChart({
           ))}
 
           <path d={areaPath} fill="url(#elevFill)" />
+
+          {compare !== null && (
+            <polyline
+              points={compare.map((p) => `${xOf(p.distance)},${yOf(p.ele)}`).join(" ")}
+              className="elev-compare"
+            />
+          )}
 
           {colorBySlope ? (
             points.slice(1).map((p, i) => {

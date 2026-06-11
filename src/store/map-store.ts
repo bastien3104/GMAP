@@ -4,6 +4,9 @@ import { DEFAULT_BASEMAP_ID } from "../map/basemaps";
 import { setOfflineBackend } from "../offline/tiles-api";
 import type { RoutingProfile } from "../core/routing/itinerary";
 
+/** Coloration du tracé sélectionné sur la carte. */
+export type TrackColoring = "none" | "slope" | "speed" | "hr";
+
 /**
  * Store de l'état de la carte (distinct du projet) : fond actif et mode hors-ligne.
  */
@@ -44,10 +47,10 @@ interface MapState {
   routingBusy: boolean;
   /** Met à jour l'indicateur d'occupation du routage. */
   setRoutingBusy: (busy: boolean) => void;
-  /** Coloration du tracé sélectionné par pente. */
-  slopeColoring: boolean;
-  /** Active/désactive la coloration par pente. */
-  setSlopeColoring: (on: boolean) => void;
+  /** Coloration du tracé sélectionné : aucune, pente, vitesse ou FC. */
+  coloring: TrackColoring;
+  /** Change la coloration du tracé sélectionné. */
+  setColoring: (coloring: TrackColoring) => void;
   /** Affiche les emprises des zones téléchargées hors-ligne. */
   showOfflineZones: boolean;
   /** Active/désactive l'affichage des zones hors-ligne. */
@@ -101,8 +104,8 @@ export const useMapStore = create<MapState>((set) => ({
   setRoutingProfile: (routingProfile) => set({ routingProfile }),
   routingBusy: false,
   setRoutingBusy: (routingBusy) => set({ routingBusy }),
-  slopeColoring: false,
-  setSlopeColoring: (slopeColoring) => set({ slopeColoring }),
+  coloring: "none",
+  setColoring: (coloring) => set({ coloring }),
   showOfflineZones: false,
   setShowOfflineZones: (showOfflineZones) => set({ showOfflineZones }),
   hoverPoint: null,
