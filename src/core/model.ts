@@ -62,6 +62,64 @@ export interface Waypoint {
   symbol?: string;
 }
 
+/** Un symbole de waypoint : clé logique, libellé FR et glyphe d'affichage. */
+export interface WaypointSymbol {
+  /** Clé logique stable (stockée dans `Waypoint.symbol`, exportée en GPX `<sym>`). */
+  key: string;
+  /** Libellé affiché dans l'UI. */
+  label: string;
+  /** Glyphe (emoji) pour le rendu carte/liste. */
+  glyph: string;
+}
+
+/** Jeu de symboles proposés pour les points d'intérêt (rando/canoë). */
+export const WAYPOINT_SYMBOLS: readonly WaypointSymbol[] = [
+  { key: "generic", label: "Point", glyph: "📍" },
+  { key: "summit", label: "Sommet", glyph: "⛰️" },
+  { key: "viewpoint", label: "Point de vue", glyph: "👁️" },
+  { key: "water", label: "Eau / source", glyph: "💧" },
+  { key: "camp", label: "Bivouac", glyph: "⛺" },
+  { key: "food", label: "Ravitaillement", glyph: "🍴" },
+  { key: "parking", label: "Parking", glyph: "🅿️" },
+  { key: "danger", label: "Danger", glyph: "⚠️" },
+];
+
+/** Symbole par défaut (clé) pour un nouveau waypoint. */
+export const DEFAULT_WAYPOINT_SYMBOL = "generic";
+
+/** Retourne le symbole correspondant à une clé (repli sur « générique »). */
+export function waypointSymbol(key: string | undefined): WaypointSymbol {
+  return (
+    WAYPOINT_SYMBOLS.find((s) => s.key === key) ?? WAYPOINT_SYMBOLS[0]!
+  );
+}
+
+/** Options de création d'un waypoint. */
+export interface CreateWaypointOptions {
+  lat: number;
+  lon: number;
+  name?: string;
+  ele?: number;
+  time?: string;
+  note?: string;
+  symbol?: string;
+}
+
+/** Crée un waypoint avec des valeurs par défaut raisonnables. */
+export function createWaypoint(options: CreateWaypointOptions): Waypoint {
+  const wpt: Waypoint = {
+    id: crypto.randomUUID(),
+    lat: options.lat,
+    lon: options.lon,
+    name: options.name ?? "Point d'intérêt",
+    symbol: options.symbol ?? DEFAULT_WAYPOINT_SYMBOL,
+  };
+  if (options.ele !== undefined) wpt.ele = options.ele;
+  if (options.time !== undefined) wpt.time = options.time;
+  if (options.note !== undefined) wpt.note = options.note;
+  return wpt;
+}
+
 /** Un projet : l'unité de travail ouverte dans l'éditeur. */
 export interface Project {
   /** Identifiant unique stable. */
