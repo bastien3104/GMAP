@@ -14,7 +14,9 @@
       {
         "title": "GMAP",
         "width": 1280,
-        "height": 800
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600
       }
     ],
     "security": {
@@ -23,13 +25,24 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
+    "publisher": "Bastien Stefani",
+    "copyright": "© 2026 Bastien Stefani",
+    "category": "Utility",
+    "shortDescription": "Éditeur et créateur de tracés GPX (rando/canoë), online et offline.",
+    "longDescription": "GMAP : application desktop d'édition et de création de tracés GPX pour la randonnée et le canoë. Import/export GPX, GeoJSON, KML, TCX, FIT ; édition de traces, points d'intérêt, photos géolocalisées ; fonds IGN/OSM avec cache hors-ligne.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["French", "English"]
+      }
+    }
   }
 }
