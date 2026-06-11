@@ -4,6 +4,7 @@ import {
   defaultTrackColor,
   type Project,
   type Track,
+  type Waypoint,
 } from "../core/model";
 import {
   moveTrack as opMoveTrack,
@@ -19,6 +20,13 @@ import {
   reverseTrack as opReverseTrack,
   splitTrackByDistance as opSplitTrack,
 } from "../core/edit/transform-ops";
+import {
+  addWaypoint as opAddWaypoint,
+  moveWaypoint as opMoveWaypoint,
+  removeWaypoint as opRemoveWaypoint,
+  updateWaypoint as opUpdateWaypoint,
+  type WaypointPatch,
+} from "../core/edit/waypoint-ops";
 import { simplifyTrack as opSimplifyTrack } from "../core/geo/simplify";
 import { smoothTrack as opSmoothTrack, type SmoothOptions } from "../core/geo/smooth";
 import { removeElevationSpikes as opCleanElevation } from "../core/geo/elevation-clean";
@@ -40,6 +48,8 @@ interface ProjectState {
   future: Project[];
   /** Trace sélectionnée (édition/surbrillance), ou `null`. */
   selectedTrackId: string | null;
+  /** Waypoint sélectionné (éditeur ouvert / surbrillance), ou `null`. */
+  selectedWaypointId: string | null;
 
   /** Charge un projet et réinitialise l'historique. */
   loadProject: (project: Project) => void;
@@ -79,6 +89,17 @@ interface ProjectState {
   smoothTrack: (id: string, options: SmoothOptions) => void;
   /** Supprime les pics d'altitude d'une trace. */
   cleanElevationSpikes: (id: string, thresholdM: number) => void;
+
+  /** Sélectionne un waypoint (ou désélectionne avec `null`). */
+  selectWaypoint: (id: string | null) => void;
+  /** Ajoute un waypoint et le sélectionne. */
+  addWaypoint: (waypoint: Waypoint) => void;
+  /** Modifie un waypoint (nom/note/symbole/altitude). */
+  updateWaypoint: (id: string, patch: WaypointPatch) => void;
+  /** Déplace un waypoint. */
+  moveWaypoint: (id: string, lon: number, lat: number) => void;
+  /** Supprime un waypoint. */
+  deleteWaypoint: (id: string) => void;
 }
 
 /** Profondeur maximale de l'historique. */
@@ -89,14 +110,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   past: [],
   future: [],
   selectedTrackId: null,
+  selectedWaypointId: null,
 
   loadProject: (project) =>
-    set({ project, past: [], future: [], selectedTrackId: null }),
+    set({ project, past: [], future: [], selectedTrackId: null, selectedWaypointId: null }),
 
   importProject: (imported) => {
     const current = get().project;
     if (current === null) {
-      set({ project: imported, past: [], future: [], selectedTrackId: imported.tracks[0]?.id ?? null });
+      set({ project: imported, past: [], future: [], selectedTrackId: imported.tracks[0]?.id ?? null, selectedWaypointId: null });
       return;
     }
     // Recolore les traces ajoutées pour continuer la palette.
@@ -114,7 +136,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   clearProject: () =>
-    set({ project: null, past: [], future: [], selectedTrackId: null }),
+    set({ project: null, past: [], future: [], selectedTrackId: null, selectedWaypointId: null }),
 
   applyEdit: (updater) => {
     const { project, past } = get();
@@ -216,4 +238,27 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       ...p,
       tracks: p.tracks.map((t) => (t.id === id ? opCleanElevation(t, thresholdM) : t)),
     })),
+
+  selectWaypoint: (id) => set({ selectedWaypointId: id }),
+  addWaypoint: (waypoint) => {
+    const { project } = get();
+    if (project === null) {
+      const base = createEmptyProject();
+      set({
+        project: { ...base, waypoints: [waypoint] },
+        past: [],
+        future: [],
+        selectedWaypointId: waypoint.id,
+      });
+      return;
+    }
+    get().applyEdit((p) => opAddWaypoint(p, waypoint));
+    set({ selectedWaypointId: waypoint.id });
+  },
+  updateWaypoint: (id, patch) => get().applyEdit((p) => opUpdateWaypoint(p, id, patch)),
+  moveWaypoint: (id, lon, lat) => get().applyEdit((p) => opMoveWaypoint(p, id, lon, lat)),
+  deleteWaypoint: (id) => {
+    get().applyEdit((p) => opRemoveWaypoint(p, id));
+    if (get().selectedWaypointId === id) set({ selectedWaypointId: null });
+  },
 }));

@@ -24,6 +24,10 @@ interface MapState {
   drawMode: boolean;
   /** Active/désactive le mode dessin (exclusif du mode édition). */
   setDrawMode: (drawMode: boolean) => void;
+  /** Mode pose de points d'intérêt (clic = ajout d'un waypoint). */
+  poiMode: boolean;
+  /** Active/désactive le mode POI (exclusif des modes dessin/édition). */
+  setPoiMode: (poiMode: boolean) => void;
   /** Tracé continu à la souris (freehand) plutôt que point par point. */
   freehand: boolean;
   /** Active/désactive le freehand. */
@@ -65,9 +69,26 @@ export const useMapStore = create<MapState>((set, get) => ({
     });
   },
   editMode: false,
-  setEditMode: (editMode) => set({ editMode, drawMode: editMode ? false : get().drawMode }),
+  setEditMode: (editMode) =>
+    set(
+      editMode
+        ? { editMode, drawMode: false, poiMode: false }
+        : { editMode },
+    ),
   drawMode: false,
-  setDrawMode: (drawMode) => set({ drawMode, editMode: drawMode ? false : get().editMode }),
+  setDrawMode: (drawMode) =>
+    set(
+      drawMode
+        ? { drawMode, editMode: false, poiMode: false }
+        : { drawMode },
+    ),
+  poiMode: false,
+  setPoiMode: (poiMode) =>
+    set(
+      poiMode
+        ? { poiMode, editMode: false, drawMode: false }
+        : { poiMode },
+    ),
   freehand: false,
   setFreehand: (freehand) => set({ freehand }),
   routing: false,
