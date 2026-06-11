@@ -51,6 +51,7 @@ GMAP/
 │  ├─ store/                # Zustand
 │  │  ├─ project-store.ts   # projet courant + historique undo/redo + sélection
 │  │  ├─ map-store.ts       # état carte (fond, hors-ligne, modes, coloration, survol)
+│  │  ├─ offline-store.ts   # registre persistant des zones téléchargées (localStorage)
 │  │  └─ ui-store.ts        # agencement UI (calques repliés, profil replié, dialogues)
 │  ├─ ui/                   # composants UI
 │  │  ├─ Menu.tsx           # primitive de menu déroulant
@@ -61,6 +62,8 @@ GMAP/
 │  │  ├─ WaypointEditor.tsx # éditeur d'un POI (nom/symbole/altitude/note)
 │  │  ├─ SearchBox.tsx      # recherche flottante (géocodage) : recentrer / poser un POI
 │  │  ├─ ShortcutsHelp.tsx  # overlay d'aide des raccourcis clavier
+│  │  ├─ ExportDialog.tsx   # export sélectif (format + traces + POI)
+│  │  ├─ OfflineZonesPanel.tsx # gestionnaire des cartes hors-ligne (façon Apple Plans)
 │  │  ├─ useTheme.ts        # applique le thème clair/sombre/auto (data-theme)
 │  │  ├─ DownloadDialog.tsx # dialogue de téléchargement de zone offline
 │  │  └─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
@@ -144,6 +147,19 @@ POI à la position GPS ; à défaut, si la photo est horodatée et qu'une trace 
 `time`, la position est **interpolée par corrélation temporelle** (`trackPointAtTime`).
 L'import (Fichier ▸ Importer des photos…) ajoute le lot en une seule entrée d'historique
 (`addWaypoints`) et affiche un bilan (géolocalisées / corrélées / ignorées).
+
+**Export sélectif** (Phase 9a) : `Fichier ▸ Exporter (sélection)…` ouvre `ExportDialog`
+(format GPX/GeoJSON/KML/TCX/FIT + cases par trace + inclure les POI). `subsetProject`
+(pur, testé) filtre le projet avant sérialisation ; sauvegarde factorisée dans `export-save`.
+
+**Cartes hors-ligne** (Phase 9b, façon Apple Plans) : le téléchargement nomme et enregistre
+une **zone** (`offline-store`, persistée `localStorage` ; nom par défaut = lieu via géocodage
+inverse). `OfflineZonesPanel` (`Carte ▸ Cartes hors-ligne…`) liste les zones (fond, zooms,
+nb tuiles, taille estimée, date) et permet **voir / renommer / supprimer**. La suppression
+libère l'espace via la commande Rust `delete_zone_tiles` (efface les tuiles de l'emprise).
+Les emprises s'affichent sur la carte (couche `offline-zones`, bascule dans le menu Carte).
+Les **tuiles** restent dans les MBTiles de `app_data_dir` ; le registre ne stocke que les
+métadonnées.
 
 **Thème, raccourcis, perf, empaquetage** (Phase 8) : thème **clair/sombre/auto** persistant
 (`ui-store.theme` + `useTheme` qui pose `data-theme` sur `<html>` ; auto résolu via

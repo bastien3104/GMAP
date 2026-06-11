@@ -193,6 +193,21 @@
 - **FIT** (binaire) = **7a-bis** (encodeur + `save_binary_file`). Puis waypoints,
   géocodage, photos EXIF.
 
+## 2026-06-11 — Phase 9 (Export sélectif & Cartes hors-ligne)
+- **Export sélectif** : `subsetProject` (pur, testé) filtre traces/POI ; dialogue dédié, en
+  plus des 5 exports rapides « projet entier » (conservés). Sauvegarde factorisée
+  (`export-save.ts`) entre le menu et le dialogue.
+- **Registre de zones** persistant en **`localStorage`** (métadonnées seulement) ; les tuiles
+  restent dans les MBTiles de `app_data_dir`. Choix localStorage (vs fichier Rust) pour la
+  simplicité ; cohérent avec le thème.
+- **Suppression d'une zone = suppression des tuiles de son emprise+zooms** (`delete_zone_tiles`).
+  Compromis assumé : des tuiles partagées avec une zone chevauchante peuvent partir (elles se
+  re-téléchargent en ligne). Pas de `VACUUM` (coûteux ; l'espace SQLite est réutilisé).
+- **Taille par zone = estimation** (nb tuiles × octets moyens/tuile du fond, via `cache_size`
+  + `cache_stats`) — pas de comptage exact par zone (tuiles partagées).
+- **Nom de zone par défaut = géocodage inverse** Géoplateforme (endpoint `/geocodage/reverse`,
+  commande Rust `geocode_reverse_online`), éditable ; repli « Zone JJ/MM ».
+
 ## 2026-06-11 — Phase 8 (Finition : thème, raccourcis, perf, empaquetage)
 - **Thème clair/sombre/auto** : `data-theme` sur `<html>`, le mode « auto » est résolu en
   JS (`useTheme` + `matchMedia`) de sorte que le CSS ne cible que `[data-theme="dark"]`
