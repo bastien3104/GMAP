@@ -1,10 +1,26 @@
 import { create } from "zustand";
 
+/** Thème d'affichage : clair, sombre, ou automatique (suit l'OS). */
+export type Theme = "light" | "dark" | "auto";
+
+const THEME_KEY = "gmap-theme";
+
+/** Lit le thème persisté (repli « auto »). */
+function loadTheme(): Theme {
+  if (typeof localStorage === "undefined") return "auto";
+  const value = localStorage.getItem(THEME_KEY);
+  return value === "light" || value === "dark" || value === "auto" ? value : "auto";
+}
+
 /**
- * État d'agencement de l'interface (panneaux ancrés, dialogues).
+ * État d'agencement de l'interface (panneaux ancrés, dialogues, thème).
  * Distinct des données (`project-store`) et de l'état carte (`map-store`).
  */
 interface UiState {
+  /** Thème d'affichage choisi (clair/sombre/auto). */
+  theme: Theme;
+  /** Change le thème et le persiste. */
+  setTheme: (theme: Theme) => void;
   /** Panneau Calques replié (gauche). */
   layersCollapsed: boolean;
   toggleLayers: () => void;
@@ -26,6 +42,11 @@ interface UiState {
 }
 
 export const useUiStore = create<UiState>((set) => ({
+  theme: loadTheme(),
+  setTheme: (theme) => {
+    if (typeof localStorage !== "undefined") localStorage.setItem(THEME_KEY, theme);
+    set({ theme });
+  },
   layersCollapsed: false,
   toggleLayers: () => set((s) => ({ layersCollapsed: !s.layersCollapsed })),
   profileCollapsed: false,

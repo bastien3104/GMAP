@@ -2,6 +2,12 @@
   color-scheme: light dark;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+[data-theme="light"] {
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+}
 
 * {
   box-sizing: border-box;
@@ -696,111 +702,111 @@ body {
 }
 
 /* ===== Thème sombre ===== */
-@media (prefers-color-scheme: dark) {
-  .menubar {
-    background: #26262a;
-    border-color: #3a3a40;
-  }
-  .menubar-btn,
-  .menu-trigger {
-    color: #eee;
-  }
-  .menubar-btn:hover:not(:disabled),
-  .menu-trigger:hover,
-  .menu-trigger.open {
-    background: #3a3a40;
-  }
-  .menubar-net {
-    color: #ccc;
-  }
-  .menu-popover,
-  .dialog {
-    background: #2a2a2e;
-    border-color: #555;
-    color: #eee;
-  }
-  .menu-item {
-    color: #eee;
-  }
-  .menu-item:hover:not(:disabled) {
-    background: #3a3a40;
-  }
-  .menu-separator {
-    background: #444;
-  }
-  .contextbar {
-    background: rgba(0, 119, 182, 0.18);
-    border-color: #3a3a40;
-  }
-  .context-hint {
-    color: #aaa;
-  }
-  .layers-panel,
-  .profile-panel {
-    background: #1f1f23;
-    border-color: #3a3a40;
-    color: #ddd;
-  }
-  .layers-collapse,
-  .profile-collapse,
-  .layer-row .layer-name:hover,
-  .layer-row .layer-name:focus,
-  .profile-ctrl input[type="number"],
-  .dialog-actions button,
-  .dialog-row button,
-  .dialog-row input[type="number"] {
-    background: #2a2a2e;
-    border-color: #555;
-    color: #eee;
-  }
-  .layer-row.selected {
-    background: rgba(0, 119, 182, 0.3);
-  }
-  .layer-row button {
-    color: #bbb;
-  }
-  .profile-stat {
-    color: #ccc;
-  }
-  .elev-grid {
-    stroke: rgba(255, 255, 255, 0.1);
-  }
-  .elev-label {
-    fill: #999;
-  }
-  .wpt-label {
-    color: #eee;
-    background: rgba(31, 31, 35, 0.85);
-    text-shadow: none;
-  }
-  .wpt-glyph {
-    background: #2a2a2e;
-  }
-  .wpt-editor {
-    background: #2a2a2e;
-    color: #eee;
-  }
-  .searchbox-input,
-  .searchbox-results {
-    background: #2a2a2e;
-  }
-  .searchbox-input input,
-  .searchbox-label {
-    color: #eee;
-  }
-  .searchbox-label:hover,
-  .searchbox-pin:hover {
-    background: rgba(0, 119, 182, 0.25);
-  }
-  .wpt-field > span {
-    color: #aaa;
-  }
-  .wpt-field input,
-  .wpt-field select,
-  .wpt-field textarea,
-  .wpt-editor-actions button {
-    background: #1f1f23;
-    border-color: #555;
-    color: #eee;
-  }
+/* Thème sombre : appliqué quand <html data-theme="dark"> (le mode « auto » est résolu
+   côté JS via useTheme → l'attribut reflète toujours le thème effectif). */
+[data-theme="dark"] .menubar {
+  background: #26262a;
+  border-color: #3a3a40;
+}
+[data-theme="dark"] .menubar-btn,
+[data-theme="dark"] .menu-trigger {
+  color: #eee;
+}
+[data-theme="dark"] .menubar-btn:hover:not(:disabled),
+[data-theme="dark"] .menu-trigger:hover,
+[data-theme="dark"] .menu-trigger.open {
+  background: #3a3a40;
+}
+[data-theme="dark"] .menubar-net {
+  color: #ccc;
+}
+[data-theme="dark"] .menu-popover,
+[data-theme="dark"] .dialog {
+  background: #2a2a2e;
+  border-color: #555;
+  color: #eee;
+}
+[data-theme="dark"] .menu-item {
+  color: #eee;
+}
+[data-theme="dark"] .menu-item:hover:not(:disabled) {
+  background: #3a3a40;
+}
+[data-theme="dark"] .menu-separator {
+  background: #444;
+}
+[data-theme="dark"] .contextbar {
+  background: rgba(0, 119, 182, 0.18);
+  border-color: #3a3a40;
+}
+[data-theme="dark"] .context-hint {
+  color: #aaa;
+}
+[data-theme="dark"] .layers-panel,
+[data-theme="dark"] .profile-panel {
+  background: #1f1f23;
+  border-color: #3a3a40;
+  color: #ddd;
+}
+[data-theme="dark"] .layers-collapse,
+[data-theme="dark"] .profile-collapse,
+[data-theme="dark"] .layer-row .layer-name:hover,
+[data-theme="dark"] .layer-row .layer-name:focus,
+[data-theme="dark"] .profile-ctrl input[type="number"],
+[data-theme="dark"] .dialog-actions button,
+[data-theme="dark"] .dialog-row button,
+[data-theme="dark"] .dialog-row input[type="number"] {
+  background: #2a2a2e;
+  border-color: #555;
+  color: #eee;
+}
+[data-theme="dark"] .layer-row.selected {
+  background: rgba(0, 119, 182, 0.3);
+}
+[data-theme="dark"] .layer-row button {
+  color: #bbb;
+}
+[data-theme="dark"] .profile-stat {
+  color: #ccc;
+}
+[data-theme="dark"] .elev-grid {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .elev-label {
+  fill: #999;
+}
+[data-theme="dark"] .wpt-label {
+  color: #eee;
+  background: rgba(31, 31, 35, 0.85);
+  text-shadow: none;
+}
+[data-theme="dark"] .wpt-glyph {
+  background: #2a2a2e;
+}
+[data-theme="dark"] .wpt-editor {
+  background: #2a2a2e;
+  color: #eee;
+}
+[data-theme="dark"] .searchbox-input,
+[data-theme="dark"] .searchbox-results {
+  background: #2a2a2e;
+}
+[data-theme="dark"] .searchbox-input input,
+[data-theme="dark"] .searchbox-label {
+  color: #eee;
+}
+[data-theme="dark"] .searchbox-label:hover,
+[data-theme="dark"] .searchbox-pin:hover {
+  background: rgba(0, 119, 182, 0.25);
+}
+[data-theme="dark"] .wpt-field > span {
+  color: #aaa;
+}
+[data-theme="dark"] .wpt-field input,
+[data-theme="dark"] .wpt-field select,
+[data-theme="dark"] .wpt-field textarea,
+[data-theme="dark"] .wpt-editor-actions button {
+  background: #1f1f23;
+  border-color: #555;
+  color: #eee;
 }

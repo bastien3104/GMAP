@@ -53,6 +53,8 @@ export function MenuBar(): ReactElement {
   const poiMode = useMapStore((s) => s.poiMode);
   const setPoiMode = useMapStore((s) => s.setPoiMode);
 
+  const theme = useUiStore((s) => s.theme);
+  const setTheme = useUiStore((s) => s.setTheme);
   const setDownloadOpen = useUiStore((s) => s.setDownloadOpen);
   const setSplitOpen = useUiStore((s) => s.setSplitOpen);
   const setSimplifyOpen = useUiStore((s) => s.setSimplifyOpen);
@@ -348,6 +350,12 @@ export function MenuBar(): ReactElement {
           checked={offline}
           onSelect={() => setOffline(!offline)}
         />
+      </Menu>
+
+      <Menu label="Affichage">
+        <MenuItem label="Clair" checked={theme === "light"} onSelect={() => setTheme("light")} />
+        <MenuItem label="Sombre" checked={theme === "dark"} onSelect={() => setTheme("dark")} />
+        <MenuItem label="Automatique (OS)" checked={theme === "auto"} onSelect={() => setTheme("auto")} />
       </Menu>
 
       <Menu label="Outils">

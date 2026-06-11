@@ -11,6 +11,7 @@ import { SplitDialog } from "../ui/SplitDialog";
 import { SimplifyDialog } from "../ui/SimplifyDialog";
 import { SmoothDialog } from "../ui/SmoothDialog";
 import { useEditorShortcuts } from "../ui/useEditorShortcuts";
+import { useTheme } from "../ui/useTheme";
 import "./app.css";
 
 /**
@@ -19,6 +20,7 @@ import "./app.css";
  * dock profil en bas ; dialogues en surcouche.
  */
 export function App(): ReactElement {
+  useTheme();
   useEditorShortcuts();
   return (
     <div className="app-shell">
