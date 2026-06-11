@@ -3,22 +3,31 @@ import type { ReactElement } from "react";
 import { getBasemap } from "../map/basemaps";
 import { getVisibleBbox } from "../map/map-ref";
 import { tileCount } from "../core/tiles/tile-math";
+import { reverseGeocode } from "../core/geocode/geocode";
 import { useMapStore } from "../store/map-store";
 import { useUiStore } from "../store/ui-store";
+import { useOfflineStore } from "../store/offline-store";
 import {
   downloadZone,
   onDownloadProgress,
   type DownloadProgress,
 } from "../offline/tiles-api";
 
+/** Nom de zone par défaut (date du jour) si le géocodage inverse échoue. */
+function defaultZoneName(): string {
+  return `Zone ${new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}`;
+}
+
 /** Dialogue modal : téléchargement hors-ligne de la zone visible (plage de zooms). */
 export function DownloadDialog(): ReactElement | null {
   const open = useUiStore((s) => s.downloadOpen);
   const setOpen = useUiStore((s) => s.setDownloadOpen);
   const activeBasemapId = useMapStore((s) => s.activeBasemapId);
+  const addZone = useOfflineStore((s) => s.addZone);
   const basemap = getBasemap(activeBasemapId);
   const basemapMaxZoom = basemap?.maxzoom ?? 19;
 
+  const [name, setName] = useState("");
   const [minZoom, setMinZoom] = useState(12);
   const [maxZoom, setMaxZoom] = useState(15);
   const [downloading, setDownloading] = useState(false);
@@ -32,6 +41,23 @@ export function DownloadDialog(): ReactElement | null {
       void unlisten.then((fn) => fn());
     };
   }, []);
+
+  // À l'ouverture : nom par défaut = lieu au centre de la zone (géocodage inverse).
+  useEffect(() => {
+    if (!open) return;
+    setName(defaultZoneName());
+    const bbox = getVisibleBbox();
+    if (bbox === null) return;
+    const lon = (bbox.minLon + bbox.maxLon) / 2;
+    const lat = (bbox.minLat + bbox.maxLat) / 2;
+    let cancelled = false;
+    void reverseGeocode(lon, lat).then((label) => {
+      if (!cancelled && label !== null) setName(label);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -54,8 +80,18 @@ export function DownloadDialog(): ReactElement | null {
         clampedMax,
         currentBbox,
       );
+      addZone({
+        id: crypto.randomUUID(),
+        name: name.trim() || defaultZoneName(),
+        basemapId: activeBasemapId,
+        bbox: currentBbox,
+        minZoom: clampedMin,
+        maxZoom: clampedMax,
+        tileCount: result.total,
+        createdAt: new Date().toISOString(),
+      });
       setMessage(
-        `Téléchargé : ${result.fetched} tuile(s) ajoutée(s) sur ${result.total}.`,
+        `Téléchargé : ${result.fetched} tuile(s) ajoutée(s) sur ${result.total}. Zone enregistrée.`,
       );
     } catch (cause) {
       setMessage(`Erreur : ${cause instanceof Error ? cause.message : String(cause)}`);
@@ -80,6 +116,15 @@ export function DownloadDialog(): ReactElement | null {
           </button>
         </div>
         <p className="dialog-sub">Fond : {basemap?.label ?? activeBasemapId}</p>
+        <div className="wpt-field">
+          <span>Nom de la zone</span>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.currentTarget.value)}
+            placeholder={defaultZoneName()}
+          />
+        </div>
         <div className="dialog-row">
           <span>Zooms</span>
           <input
