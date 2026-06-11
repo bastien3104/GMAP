@@ -3,6 +3,7 @@
 
 mod download;
 mod elevation;
+mod geocode;
 mod mbtiles;
 mod providers;
 mod routing;
@@ -73,7 +74,8 @@ pub fn run() {
             cache_stats,
             download::download_zone,
             routing::route_online,
-            elevation::elevation_online
+            elevation::elevation_online,
+            geocode::geocode_online
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
