@@ -287,3 +287,25 @@
   trace), badge trace/route ; actions (ordre/suppression) révélées au survol. Les POI
   restent en lignes compactes. Aucune commande supprimée (visibilité, couleur, renommage,
   ordre, suppression, sélection).
+
+## 2026-06-12 — Activités FIT (import, stats, analyse, coloration)
+- **Une activité = un tracé enrichi** : pas de nouveau type — `TrackPoint` gagne des
+  champs capteurs optionnels (hr/cadence/power/temp/speed) et `Track.activity` porte
+  sport/début/appareil. Toute l'édition existante (fusion, découpe, simplification,
+  undo/redo, exports) marche d'office ; les ops utilisent des spreads → capteurs
+  préservés.
+- **Décodeur FIT pur et tolérant** (`core/import/parse-fit.ts`) : en-têtes compressés,
+  LE/BE, champs développeur sautés ; fichier tronqué = points déjà décodés conservés ;
+  testé en round-trip avec l'encodeur. `parseFitProject` = même contrat que `parseGpx`.
+- **Stats d'activité pures** (`core/geo/activity-stats.ts`) : temps en mouvement (seuil
+  0,5 m/s — les pauses tombent naturellement), VAM en montée, agrégats capteurs, zones
+  cardio (5 zones en % d'une FC max configurable, persistée) et splits/km avec
+  répartition linéaire aux bornes.
+- **Recadrage temporel** (`core/edit/activity-ops.ts`) : suppression des points hors
+  fenêtre, points sans horodatage conservés, réversible via applyEdit.
+- **Coloration carte généralisée** : `map-store.slopeColoring` → `coloring`
+  (none/slope/speed/hr) ; la couche pente est réutilisée, l'expression de couleur est
+  changée à la volée (`setPaintProperty`) — dégradé continu min/max pour la vitesse,
+  paliers de zones pour la FC (couleurs partagées avec l'analyse).
+- **Comparaison de profils** : profil d'une autre trace superposé en pointillés dans le
+  dock (échelles communes), sélecteur local — pas d'état global nécessaire.
