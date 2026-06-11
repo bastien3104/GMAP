@@ -19,7 +19,7 @@ GMAP/
 │  ├─ main.tsx              # point d'entrée React
 │  ├─ app/                  # composition / layout
 │  │  ├─ App.tsx            # carte + barre d'outils
-│  │  └─ app.css
+│  │  └─ app.css            # design system (tokens clair/sombre, animations, identité)
 │  ├─ map/                  # MapLibre : init, fonds, style, couches
 │  │  ├─ MapView.tsx        # composant carte (init, fonds, source projet, fitBounds)
 │  │  ├─ basemaps.ts        # définition des fonds + URL proxy tiles://
@@ -64,6 +64,7 @@ GMAP/
 │  │  ├─ ShortcutsHelp.tsx  # overlay d'aide des raccourcis clavier
 │  │  ├─ ExportDialog.tsx   # export sélectif (format + traces + POI)
 │  │  ├─ OfflineZonesPanel.tsx # gestionnaire des cartes hors-ligne (façon Apple Plans)
+│  │  ├─ icons.tsx          # jeu d'icônes SVG maison (motif « trace », currentColor)
 │  │  ├─ useTheme.ts        # applique le thème clair/sombre/auto (data-theme)
 │  │  ├─ DownloadDialog.tsx # dialogue de téléchargement de zone offline
 │  │  └─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y

@@ -264,3 +264,19 @@
   projet courant (action `importProject`) au lieu de remplacer : 1er fichier crée le projet
   (réinitialise l'historique), les suivants s'ajoutent via `applyEdit` (réversible) avec
   recoloration pour continuer la palette. Tous les GPX ouverts apparaissent dans les calques.
+
+## 2026-06-11 — Refonte UI / identité visuelle
+- **Identité « la trace »** : orange balisage (#ff5a1f) comme couleur signature, thème
+  clair « carte papier » / sombre « bivouac », logo SVG (trace gravissant un sommet,
+  animée au lancement), wordmark G·MAP, motif courbes de niveau en filigrane.
+- **Design system par tokens CSS** (`app.css`) : le thème sombre ne redéfinit que les
+  variables (`--bg`, `--ink`, `--accent`…), plus aucune règle dupliquée par sélecteur
+  `[data-theme="dark"]`. Boutons pills, dialogues à liseré accent, anneau de focus unifié.
+- **Police Archivo Variable embarquée** via `@fontsource-variable/archivo` (~35 Ko woff2,
+  aucun appel réseau → compatible offline). Identifiants/refus de Google Fonts CDN.
+- **Icônes SVG maison** (`ui/icons.tsx`, trait 1.8, `currentColor`) remplaçant les emojis
+  de la barre d'outils/panneaux ; les glyphes de symboles de waypoints restent des emojis
+  (données du modèle).
+- **Animations** : entrée en scène des régions (menubar/calques/dock décalés), popovers et
+  dialogues en pop, pulsation du mode actif, tracé du logo en stroke-dashoffset ;
+  désactivées sous `prefers-reduced-motion`. Aucune fonctionnalité modifiée.
