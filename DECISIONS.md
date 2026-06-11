@@ -193,6 +193,21 @@
 - **FIT** (binaire) = **7a-bis** (encodeur + `save_binary_file`). Puis waypoints,
   géocodage, photos EXIF.
 
+## 2026-06-11 — Phase 7b (Waypoints / POI)
+- **Ops pures** `core/edit/waypoint-ops.ts` (add/update/move/remove, immuables, testées) ;
+  `createWaypoint` + `WAYPOINT_SYMBOLS` (jeu logique rando/canoë : sommet, eau, bivouac…)
+  dans le modèle.
+- **Rendu en marqueurs DOM** (`maplibregl.Marker`, glyphe + nom) plutôt qu'une couche
+  symbole : afficher du texte/emoji exigerait une URL `glyphs` (police PBF), incompatible
+  avec le mode hors-ligne. Les marqueurs gèrent nativement le glisser et le clic.
+- **Mode POI** (`map-store.poiMode`) exclusif des modes dessin/édition ; déplacement d'un
+  POI **uniquement** en mode POI (évite les déplacements accidentels).
+- **Altitude auto à la pose** : récupérée via le client altimétrique online, appliquée par
+  `enrichWaypointElevation` **hors historique** (la pose reste une seule entrée undo ;
+  l'enrichissement asynchrone ne pollue pas la pile). Repli vide si hors-ligne/échec.
+- **Édition** via brouillon local (`WaypointEditor`) commité sur « Enregistrer » → une
+  entrée d'historique par session d'édition (cf. motif nom/couleur des traces).
+
 ## 2026-06-10 — Phase 7a-bis (Export FIT)
 - **Encodeur FIT pur** (`core/export/fit.ts`) : fichier « course » (file_id type=course +
   course + lap + records), en-tête 14 octets, semicercles, altitude (m+500)×5, temps époque

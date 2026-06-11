@@ -24,7 +24,7 @@ GMAP/
 │  │  ├─ MapView.tsx        # composant carte (init, fonds, source projet, fitBounds)
 │  │  ├─ basemaps.ts        # définition des fonds + URL proxy tiles://
 │  │  ├─ map-style.ts       # build de style/source raster (pur)
-│  │  ├─ track-layers.ts    # source + couches MapLibre du projet
+│  │  ├─ track-layers.ts    # source + couche ligne du projet (POI = marqueurs DOM)
 │  │  ├─ edit-layers.ts     # poignées d'édition (sommets/milieux)
 │  │  ├─ slope-layers.ts    # couche coloration pente + marqueur de survol
 │  │  ├─ preview-layer.ts   # couche d'aperçu (outils de nettoyage)
@@ -33,7 +33,7 @@ GMAP/
 │  ├─ core/                 # logique métier pure (testée, sans UI)
 │  │  ├─ model.ts           # types Project / Track / Waypoint / TrackPoint + helpers
 │  │  ├─ tiles/             # math de tuiles Web Mercator (+ tests)
-│  │  ├─ edit/              # opérations pures (track-ops, point-ops, draw-ops, transform-ops)
+│  │  ├─ edit/              # opérations pures (track-ops, point-ops, draw-ops, transform-ops, waypoint-ops)
 │  │  ├─ geo/               # stats, Naismith, profil, simplify (RDP), smooth, elevation-clean (+ tests)
 │  │  ├─ elevation/         # client altimétrique online (+ tests)
 │  │  ├─ gpx/               # import/export GPX
@@ -53,9 +53,10 @@ GMAP/
 │  ├─ ui/                   # composants UI
 │  │  ├─ Menu.tsx           # primitive de menu déroulant
 │  │  ├─ MenuBar.tsx        # barre Fichier/Édition/Carte/Outils + indicateur réseau
-│  │  ├─ ContextBar.tsx     # sous-barre contextuelle (Dessin / Édition)
-│  │  ├─ LayersPanel.tsx    # dock gauche rétractable : calques (visibilité/couleur/nom/ordre/suppr)
+│  │  ├─ ContextBar.tsx     # sous-barre contextuelle (Dessin / Édition / POI)
+│  │  ├─ LayersPanel.tsx    # dock gauche rétractable : calques + points d'intérêt
 │  │  ├─ ProfilePanel.tsx   # dock bas repliable : stats + Naismith + profil SVG interactif
+│  │  ├─ WaypointEditor.tsx # éditeur d'un POI (nom/symbole/altitude/note)
 │  │  ├─ DownloadDialog.tsx # dialogue de téléchargement de zone offline
 │  │  └─ useEditorShortcuts.ts  # raccourcis Ctrl+Z / Ctrl+Y
 │  └─ offline/              # cache offline
@@ -97,8 +98,17 @@ Le `project-store` historise l'état : `past[] / project (présent) / future[]`.
 mutation passe par `applyEdit(updater)` (instantanés immuables à partage de structure),
 ce qui la rend annulable (`undo`/`redo`, Ctrl+Z / Ctrl+Y). Les opérations pures vivent
 dans `core/edit/` (`track-ops` : renommer/couleur/visibilité/ordre/suppression ;
-`point-ops` : déplacer/insérer/supprimer un point). `selectedTrackId` pilote la
-surbrillance et la cible d'édition.
+`point-ops` : déplacer/insérer/supprimer un point ; `waypoint-ops` : ajouter/modifier/
+déplacer/supprimer un POI). `selectedTrackId` pilote la surbrillance et la cible d'édition.
+
+**Points d'intérêt (POI)** (`map-store.poiMode`, exclusif des modes dessin/édition,
+Phase 7b) : en mode POI, clic sur la carte pose un waypoint (sélectionné, éditeur ouvert) ;
+l'altitude est pré-remplie via le client altimétrique online (enrichissement **hors
+historique** : `enrichWaypointElevation`, repli vide si hors-ligne). Les POI sont rendus en
+**marqueurs DOM** (`maplibregl.Marker`, glyphe + nom) — déplaçables en mode POI (commit
+unique au `dragend`) ; clic = sélection. `WaypointEditor` (nom/symbole/altitude/note),
+`LayersPanel` liste les POI (clic = recadrer/sélectionner). `selectedWaypointId` pilote la
+surbrillance et l'éditeur ; Suppr supprime, Échap désélectionne.
 
 **Mode édition des points** (`map-store.editMode`) : sur la trace sélectionnée, `MapView`
 affiche des poignées (sources `edit-vertices`/`edit-midpoints`). Glisser un sommet met à
@@ -145,7 +155,8 @@ Modèle ──buildGpx──▶ GPX 1.1   (export ; KML/TCX/FIT en Phase 7)
 ```
 - **Import** : `Toolbar` lit le fichier (FileReader) → `parseGpx` → `loadProject` (store).
 - **Affichage** : `MapView` observe le store, convertit en GeoJSON, met à jour la source
-  `project-data` (couches `track-lines` + `waypoints`) et recadre la vue (`fitBounds`).
+  `project-data` (couche `track-lines`) et recadre la vue (`fitBounds`) ; les waypoints sont
+  rendus séparément en marqueurs DOM.
 - **Export** : `Toolbar` → `buildGpx(project)` → `Blob` téléchargé.
 - I/O fichier 100 % frontend (offline). Le plugin Tauri `dialog`/`fs` (UX native) viendra
   en Phase 7/8.
