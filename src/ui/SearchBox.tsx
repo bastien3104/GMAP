@@ -5,6 +5,7 @@ import { createWaypoint } from "../core/model";
 import { useProjectStore } from "../store/project-store";
 import { useUiStore } from "../store/ui-store";
 import { flyTo } from "../map/map-ref";
+import { IconClose, IconPin, IconSearch } from "./icons";
 
 /** Délai de debounce (ms) avant déclenchement de la recherche. */
 const DEBOUNCE_MS = 300;
@@ -91,7 +92,9 @@ export function SearchBox(): ReactElement | null {
   return (
     <div className="searchbox">
       <div className="searchbox-input">
-        <span className="searchbox-icon">🔍</span>
+        <span className="searchbox-icon">
+          <IconSearch size={15} />
+        </span>
         <input
           ref={inputRef}
           type="text"
@@ -112,7 +115,7 @@ export function SearchBox(): ReactElement | null {
           title="Fermer (Échap)"
           onClick={close}
         >
-          ✕
+          <IconClose size={14} />
         </button>
       </div>
 
@@ -142,7 +145,7 @@ export function SearchBox(): ReactElement | null {
                 onClick={() => dropPoi(r)}
                 title="Poser un point d'intérêt ici"
               >
-                📍
+                <IconPin size={15} />
               </button>
             </li>
           ))}

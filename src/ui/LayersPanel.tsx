@@ -4,6 +4,13 @@ import { waypointSymbol, type Track, type Waypoint } from "../core/model";
 import { useProjectStore } from "../store/project-store";
 import { useUiStore } from "../store/ui-store";
 import { flyTo } from "../map/map-ref";
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconChevronLeft,
+  IconChevronRight,
+  IconClose,
+} from "./icons";
 
 /**
  * Panneau de calques ancré à gauche (rétractable) : gestion des traces
@@ -24,7 +31,7 @@ export function LayersPanel(): ReactElement {
           onClick={toggle}
           title="Afficher les calques"
         >
-          ›
+          <IconChevronRight size={13} />
         </button>
       </aside>
     );
@@ -40,7 +47,7 @@ export function LayersPanel(): ReactElement {
           onClick={toggle}
           title="Masquer les calques"
         >
-          ‹
+          <IconChevronLeft size={13} />
         </button>
       </div>
       {project === null ? (
@@ -108,7 +115,7 @@ function WaypointRow({ waypoint }: { waypoint: Waypoint }): ReactElement {
         }}
         title="Supprimer"
       >
-        ✕
+        <IconClose size={13} />
       </button>
     </li>
   );
@@ -181,7 +188,7 @@ function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
         disabled={index === 0}
         title="Monter"
       >
-        ▲
+        <IconArrowUp size={13} />
       </button>
       <button
         type="button"
@@ -192,7 +199,7 @@ function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
         disabled={index === count - 1}
         title="Descendre"
       >
-        ▼
+        <IconArrowDown size={13} />
       </button>
       <button
         type="button"
@@ -202,7 +209,7 @@ function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
         }}
         title="Supprimer"
       >
-        ✕
+        <IconClose size={13} />
       </button>
     </li>
   );

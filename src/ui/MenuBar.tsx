@@ -19,6 +19,7 @@ import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
 import { useUiStore } from "../store/ui-store";
 import { Menu, MenuItem, MenuSeparator } from "./Menu";
+import { IconDraw, IconEdit, IconLogo, IconPin, IconRedo, IconUndo } from "./icons";
 
 /** Barre de menus principale (Fichier / Édition / Carte / Outils) + indicateur réseau. */
 export function MenuBar(): ReactElement {
@@ -285,6 +286,14 @@ export function MenuBar(): ReactElement {
 
   return (
     <div className="menubar">
+      <div className="brand" title="GMAP — Studio de tracés GPX">
+        <span className="brand-logo">
+          <IconLogo size={18} />
+        </span>
+        <span className="brand-name">
+          G<em>MAP</em>
+        </span>
+      </div>
       <input
         ref={fileInputRef}
         type="file"
@@ -356,15 +365,19 @@ export function MenuBar(): ReactElement {
       </Menu>
 
       <div className="menubar-group" aria-label="Édition">
-        <button type="button" className="menubar-btn" onClick={undo} disabled={past.length === 0} title="Annuler (Ctrl+Z)">↶</button>
-        <button type="button" className="menubar-btn" onClick={redo} disabled={future.length === 0} title="Rétablir (Ctrl+Y)">↷</button>
+        <button type="button" className="menubar-btn" onClick={undo} disabled={past.length === 0} title="Annuler (Ctrl+Z)">
+          <IconUndo />
+        </button>
+        <button type="button" className="menubar-btn" onClick={redo} disabled={future.length === 0} title="Rétablir (Ctrl+Y)">
+          <IconRedo />
+        </button>
         <button
           type="button"
           className={drawMode ? "menubar-btn active" : "menubar-btn"}
           onClick={toggleDraw}
           title="Dessiner une trace"
         >
-          ✏ Dessiner
+          <IconDraw /> Dessiner
         </button>
         <button
           type="button"
@@ -373,7 +386,7 @@ export function MenuBar(): ReactElement {
           disabled={!hasSelection}
           title="Éditer les points de la trace sélectionnée"
         >
-          ✎ Éditer
+          <IconEdit /> Éditer
         </button>
         <button
           type="button"
@@ -381,7 +394,7 @@ export function MenuBar(): ReactElement {
           onClick={() => setPoiMode(!poiMode)}
           title="Poser des points d'intérêt (clic sur la carte)"
         >
-          📍 Point
+          <IconPin /> Point
         </button>
       </div>
 

@@ -8,6 +8,7 @@ import { naismithDuration } from "../core/geo/naismith";
 import { buildProfile } from "../core/geo/profile";
 import { SLOPE_LEGEND } from "../map/slope-layers";
 import { ElevationChart } from "./ElevationChart";
+import { IconChevronDown, IconChevronUp } from "./icons";
 
 /**
  * Dock bas repliable : statistiques de la trace sélectionnée, durée Naismith et profil
@@ -43,7 +44,7 @@ export function ProfilePanel(): ReactElement | null {
           onClick={toggleProfile}
           title={collapsed ? "Déplier le profil" : "Replier le profil"}
         >
-          {collapsed ? "▴" : "▾"}
+          {collapsed ? <IconChevronUp size={13} /> : <IconChevronDown size={13} />}
         </button>
         <span className="profile-title">{track.name}</span>
         <span className="profile-stat">{formatDistance(stats.distance)}</span>

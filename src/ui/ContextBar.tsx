@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { useMapStore } from "../store/map-store";
 import type { RoutingProfile } from "../core/routing/itinerary";
+import { IconDraw, IconEdit, IconPin } from "./icons";
 
 /** Sous-barre contextuelle : options du mode Dessin, ou aide du mode Édition. */
 export function ContextBar(): ReactElement | null {
@@ -20,7 +21,9 @@ export function ContextBar(): ReactElement | null {
   if (poiMode) {
     return (
       <div className="contextbar">
-        <span className="context-mode">📍 Points d'intérêt</span>
+        <span className="context-mode">
+          <IconPin size={13} /> Points d'intérêt
+        </span>
         <span className="context-hint">
           Cliquer sur la carte = poser un POI · glisser un POI = déplacer · clic =
           éditer · Échap = quitter
@@ -32,7 +35,9 @@ export function ContextBar(): ReactElement | null {
   if (editMode) {
     return (
       <div className="contextbar">
-        <span className="context-mode">✎ Édition</span>
+        <span className="context-mode">
+          <IconEdit size={13} /> Édition
+        </span>
         <span className="context-hint">
           Glisser un sommet · clic milieu = insérer · sommet puis Suppr = supprimer ·
           Échap = quitter
@@ -43,7 +48,9 @@ export function ContextBar(): ReactElement | null {
 
   return (
     <div className="contextbar">
-      <span className="context-mode">✏ Dessin</span>
+      <span className="context-mode">
+        <IconDraw size={13} /> Dessin
+      </span>
       <label>
         <input
           type="checkbox"

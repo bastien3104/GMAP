@@ -6,6 +6,7 @@ import { cacheSize, cacheStats, deleteZoneTiles } from "../offline/tiles-api";
 import { useUiStore } from "../store/ui-store";
 import { useMapStore } from "../store/map-store";
 import { useOfflineStore, type OfflineZone } from "../store/offline-store";
+import { IconRename, IconTarget, IconTrash } from "./icons";
 
 /** Formate un nombre d'octets en taille lisible. */
 function formatBytes(bytes: number): string {
@@ -161,13 +162,13 @@ function ZoneRow({ zone, avgBytes }: { zone: OfflineZone; avgBytes: number }): R
                 setOpen(false);
               }}
             >
-              🔍
+              <IconTarget size={14} />
             </button>
             <button type="button" title="Renommer" onClick={() => setEditing(true)}>
-              ✎
+              <IconRename size={14} />
             </button>
             <button type="button" title="Supprimer" onClick={() => setConfirming(true)}>
-              🗑
+              <IconTrash size={14} />
             </button>
           </>
         )}
