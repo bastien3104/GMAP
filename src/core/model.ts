@@ -82,6 +82,7 @@ export const WAYPOINT_SYMBOLS: readonly WaypointSymbol[] = [
   { key: "food", label: "Ravitaillement", glyph: "🍴" },
   { key: "parking", label: "Parking", glyph: "🅿️" },
   { key: "danger", label: "Danger", glyph: "⚠️" },
+  { key: "photo", label: "Photo", glyph: "📷" },
 ];
 
 /** Symbole par défaut (clé) pour un nouveau waypoint. */
