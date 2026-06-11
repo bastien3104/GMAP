@@ -45,6 +45,8 @@ export function MenuBar(): ReactElement {
   const setEditMode = useMapStore((s) => s.setEditMode);
   const drawMode = useMapStore((s) => s.drawMode);
   const setDrawMode = useMapStore((s) => s.setDrawMode);
+  const poiMode = useMapStore((s) => s.poiMode);
+  const setPoiMode = useMapStore((s) => s.setPoiMode);
 
   const setDownloadOpen = useUiStore((s) => s.setDownloadOpen);
   const setSplitOpen = useUiStore((s) => s.setSplitOpen);
@@ -72,6 +74,11 @@ export function MenuBar(): ReactElement {
   useEffect(() => {
     if (selectedTrackId === null && editMode) setEditMode(false);
   }, [selectedTrackId, editMode, setEditMode]);
+
+  // Sortie auto du mode POI si plus de projet ouvert.
+  useEffect(() => {
+    if (project === null && poiMode) setPoiMode(false);
+  }, [project, poiMode, setPoiMode]);
 
   function flash(message: string): void {
     setStatus(message);
@@ -258,6 +265,14 @@ export function MenuBar(): ReactElement {
           title="Éditer les points de la trace sélectionnée"
         >
           ✎ Éditer
+        </button>
+        <button
+          type="button"
+          className={poiMode ? "menubar-btn active" : "menubar-btn"}
+          onClick={() => setPoiMode(!poiMode)}
+          title="Poser des points d'intérêt (clic sur la carte)"
+        >
+          📍 Point
         </button>
       </div>
 

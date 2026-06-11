@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import type { Track } from "../core/model";
+import { waypointSymbol, type Track, type Waypoint } from "../core/model";
 import { useProjectStore } from "../store/project-store";
 import { useUiStore } from "../store/ui-store";
+import { flyTo } from "../map/map-ref";
 
 /**
  * Panneau de calques ancré à gauche (rétractable) : gestion des traces
@@ -58,7 +59,58 @@ export function LayersPanel(): ReactElement {
           ))}
         </ul>
       )}
+
+      {project !== null && project.waypoints.length > 0 && (
+        <>
+          <div className="layers-header">
+            <span>Points d'intérêt ({project.waypoints.length})</span>
+          </div>
+          <ul className="layers-list">
+            {project.waypoints.map((wpt) => (
+              <WaypointRow key={wpt.id} waypoint={wpt} />
+            ))}
+          </ul>
+        </>
+      )}
     </aside>
+  );
+}
+
+/** Ligne d'un point d'intérêt : sélection + recadrage, suppression. */
+function WaypointRow({ waypoint }: { waypoint: Waypoint }): ReactElement {
+  const selectedWaypointId = useProjectStore((s) => s.selectedWaypointId);
+  const selectWaypoint = useProjectStore((s) => s.selectWaypoint);
+  const remove = useProjectStore((s) => s.deleteWaypoint);
+
+  const isSelected = waypoint.id === selectedWaypointId;
+  const sym = waypointSymbol(waypoint.symbol);
+
+  return (
+    <li
+      className={isSelected ? "layer-row selected" : "layer-row"}
+      onClick={() => {
+        selectWaypoint(waypoint.id);
+        flyTo(waypoint.lon, waypoint.lat);
+      }}
+    >
+      <span className="layer-meta" title={sym.label}>
+        {sym.glyph}
+      </span>
+      <span className="layer-name">{waypoint.name}</span>
+      {waypoint.ele !== undefined && (
+        <span className="layer-meta">{Math.round(waypoint.ele)} m</span>
+      )}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          remove(waypoint.id);
+        }}
+        title="Supprimer"
+      >
+        ✕
+      </button>
+    </li>
   );
 }
 

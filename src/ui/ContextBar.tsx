@@ -6,6 +6,7 @@ import type { RoutingProfile } from "../core/routing/itinerary";
 export function ContextBar(): ReactElement | null {
   const drawMode = useMapStore((s) => s.drawMode);
   const editMode = useMapStore((s) => s.editMode);
+  const poiMode = useMapStore((s) => s.poiMode);
   const freehand = useMapStore((s) => s.freehand);
   const setFreehand = useMapStore((s) => s.setFreehand);
   const routing = useMapStore((s) => s.routing);
@@ -14,7 +15,19 @@ export function ContextBar(): ReactElement | null {
   const setRoutingProfile = useMapStore((s) => s.setRoutingProfile);
   const routingBusy = useMapStore((s) => s.routingBusy);
 
-  if (!drawMode && !editMode) return null;
+  if (!drawMode && !editMode && !poiMode) return null;
+
+  if (poiMode) {
+    return (
+      <div className="contextbar">
+        <span className="context-mode">📍 Points d'intérêt</span>
+        <span className="context-hint">
+          Cliquer sur la carte = poser un POI · glisser un POI = déplacer · clic =
+          éditer · Échap = quitter
+        </span>
+      </div>
+    );
+  }
 
   if (editMode) {
     return (
