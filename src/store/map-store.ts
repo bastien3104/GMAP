@@ -48,6 +48,10 @@ interface MapState {
   slopeColoring: boolean;
   /** Active/désactive la coloration par pente. */
   setSlopeColoring: (on: boolean) => void;
+  /** Affiche les emprises des zones téléchargées hors-ligne. */
+  showOfflineZones: boolean;
+  /** Active/désactive l'affichage des zones hors-ligne. */
+  setShowOfflineZones: (on: boolean) => void;
   /** Position survolée sur le profil (marqueur carte), ou `null`. */
   hoverPoint: [number, number] | null;
   /** Met à jour le point de survol. */
@@ -99,6 +103,8 @@ export const useMapStore = create<MapState>((set) => ({
   setRoutingBusy: (routingBusy) => set({ routingBusy }),
   slopeColoring: false,
   setSlopeColoring: (slopeColoring) => set({ slopeColoring }),
+  showOfflineZones: false,
+  setShowOfflineZones: (showOfflineZones) => set({ showOfflineZones }),
   hoverPoint: null,
   setHoverPoint: (hoverPoint) => set({ hoverPoint }),
   previewData: null,

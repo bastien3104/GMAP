@@ -11,6 +11,7 @@ import { SplitDialog } from "../ui/SplitDialog";
 import { SimplifyDialog } from "../ui/SimplifyDialog";
 import { SmoothDialog } from "../ui/SmoothDialog";
 import { ExportDialog } from "../ui/ExportDialog";
+import { OfflineZonesPanel } from "../ui/OfflineZonesPanel";
 import { ShortcutsHelp } from "../ui/ShortcutsHelp";
 import { useEditorShortcuts } from "../ui/useEditorShortcuts";
 import { useTheme } from "../ui/useTheme";
@@ -42,6 +43,7 @@ export function App(): ReactElement {
       <SimplifyDialog />
       <SmoothDialog />
       <ExportDialog />
+      <OfflineZonesPanel />
       <ShortcutsHelp />
     </div>
   );

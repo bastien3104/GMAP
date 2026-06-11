@@ -37,3 +37,15 @@ export function flyTo(lon: number, lat: number): void {
     duration: 500,
   });
 }
+
+/** Recadre la carte sur une emprise [minLon, minLat, maxLon, maxLat]. */
+export function flyToBounds(bbox: Bbox): void {
+  if (current === null) return;
+  current.fitBounds(
+    [
+      [bbox.minLon, bbox.minLat],
+      [bbox.maxLon, bbox.maxLat],
+    ],
+    { padding: 48, duration: 600 },
+  );
+}

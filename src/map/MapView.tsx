@@ -39,6 +39,13 @@ import {
   PREVIEW_SOURCE_ID,
   previewLineLayer,
 } from "./preview-layer";
+import {
+  OFFLINE_ZONES_SOURCE_ID,
+  offlineZonesFillLayer,
+  offlineZonesLineLayer,
+  offlineZonesFeatureCollection,
+} from "./offline-zones-layer";
+import { useOfflineStore } from "../store/offline-store";
 import { setMapInstance } from "./map-ref";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
@@ -91,6 +98,8 @@ export function MapView(): ReactElement {
   const slopeColoring = useMapStore((s) => s.slopeColoring);
   const hoverPoint = useMapStore((s) => s.hoverPoint);
   const previewData = useMapStore((s) => s.previewData);
+  const showOfflineZones = useMapStore((s) => s.showOfflineZones);
+  const offlineZones = useOfflineStore((s) => s.zones);
   const lastFittedProjectId = useRef<string | null>(null);
   const wasDrawing = useRef(false);
   const lastAnchorRef = useRef<[number, number] | null>(null);
@@ -132,6 +141,9 @@ export function MapView(): ReactElement {
       map.addLayer(hoverPointLayer);
       map.addSource(PREVIEW_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
       map.addLayer(previewLineLayer);
+      map.addSource(OFFLINE_ZONES_SOURCE_ID, { type: "geojson", data: EMPTY_DATA });
+      map.addLayer(offlineZonesFillLayer);
+      map.addLayer(offlineZonesLineLayer);
       setMapReady(true);
     });
 
@@ -214,6 +226,19 @@ export function MapView(): ReactElement {
     if (source === undefined) return;
     source.setData(previewData ?? EMPTY_DATA);
   }, [previewData, mapReady]);
+
+  // Emprises des zones téléchargées (affichage à la demande).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map === null || !mapReady) return;
+    const source = map.getSource(OFFLINE_ZONES_SOURCE_ID) as
+      | maplibregl.GeoJSONSource
+      | undefined;
+    if (source === undefined) return;
+    source.setData(
+      showOfflineZones ? offlineZonesFeatureCollection(offlineZones) : EMPTY_DATA,
+    );
+  }, [showOfflineZones, offlineZones, mapReady]);
 
   // Marqueur de survol (synchronisé avec le profil).
   useEffect(() => {

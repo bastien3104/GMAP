@@ -48,6 +48,9 @@ interface UiState {
   /** Dialogue d'export sélectif ouvert. */
   exportOpen: boolean;
   setExportOpen: (open: boolean) => void;
+  /** Gestionnaire des cartes hors-ligne ouvert. */
+  offlineZonesOpen: boolean;
+  setOfflineZonesOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -74,4 +77,6 @@ export const useUiStore = create<UiState>((set) => ({
   setSearchOpen: (searchOpen) => set({ searchOpen }),
   exportOpen: false,
   setExportOpen: (exportOpen) => set({ exportOpen }),
+  offlineZonesOpen: false,
+  setOfflineZonesOpen: (offlineZonesOpen) => set({ offlineZonesOpen }),
 }));

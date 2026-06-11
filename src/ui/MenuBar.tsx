@@ -44,6 +44,8 @@ export function MenuBar(): ReactElement {
   const setBasemap = useMapStore((s) => s.setBasemap);
   const slopeColoring = useMapStore((s) => s.slopeColoring);
   const setSlopeColoring = useMapStore((s) => s.setSlopeColoring);
+  const showOfflineZones = useMapStore((s) => s.showOfflineZones);
+  const setShowOfflineZones = useMapStore((s) => s.setShowOfflineZones);
   const offline = useMapStore((s) => s.offline);
   const setOffline = useMapStore((s) => s.setOffline);
   const editMode = useMapStore((s) => s.editMode);
@@ -58,6 +60,7 @@ export function MenuBar(): ReactElement {
   const setHelpOpen = useUiStore((s) => s.setHelpOpen);
   const setSearchOpen = useUiStore((s) => s.setSearchOpen);
   const setExportOpen = useUiStore((s) => s.setExportOpen);
+  const setOfflineZonesOpen = useUiStore((s) => s.setOfflineZonesOpen);
   const setDownloadOpen = useUiStore((s) => s.setDownloadOpen);
   const setSplitOpen = useUiStore((s) => s.setSplitOpen);
   const setSimplifyOpen = useUiStore((s) => s.setSimplifyOpen);
@@ -401,6 +404,19 @@ export function MenuBar(): ReactElement {
           label="Mode hors-ligne"
           checked={offline}
           onSelect={() => setOffline(!offline)}
+        />
+        <MenuSeparator />
+        <MenuItem
+          label="Afficher les zones téléchargées"
+          checked={showOfflineZones}
+          onSelect={() => setShowOfflineZones(!showOfflineZones)}
+        />
+        <MenuItem
+          label="Cartes hors-ligne…"
+          onSelect={() => {
+            setShowOfflineZones(true);
+            setOfflineZonesOpen(true);
+          }}
         />
       </Menu>
 
