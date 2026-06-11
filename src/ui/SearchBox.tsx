@@ -3,42 +3,40 @@ import type { ReactElement } from "react";
 import { geocodeSearch, type GeocodeResult } from "../core/geocode/geocode";
 import { createWaypoint } from "../core/model";
 import { useProjectStore } from "../store/project-store";
+import { useUiStore } from "../store/ui-store";
 import { flyTo } from "../map/map-ref";
 
 /** Délai de debounce (ms) avant déclenchement de la recherche. */
 const DEBOUNCE_MS = 300;
 
 /**
- * Barre de recherche flottante (géocodage Géoplateforme) : recentre la carte sur un
- * résultat et permet d'y poser un point d'intérêt. Échec réseau = message discret
- * (dégradation gracieuse), jamais de crash.
+ * Barre de recherche flottante (géocodage Géoplateforme).
+ *
+ * Masquée par défaut : visible uniquement quand `ui-store.searchOpen` est vrai (ouverte
+ * via Ctrl+F ou le menu Outils). Choisir un résultat recentre la carte (ou pose un POI)
+ * **et referme** la barre. Échec réseau = message discret (dégradation gracieuse).
  */
-export function SearchBox(): ReactElement {
+export function SearchBox(): ReactElement | null {
+  const open = useUiStore((s) => s.searchOpen);
+  const setOpen = useUiStore((s) => s.setSearchOpen);
   const addWaypoint = useProjectStore((s) => s.addWaypoint);
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeocodeResult[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const reqId = useRef(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Ctrl/Cmd+F : focus de la recherche.
+  // Focus automatique à l'ouverture.
   useEffect(() => {
-    function onKey(event: KeyboardEvent): void {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
-        event.preventDefault();
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+    if (open) inputRef.current?.focus();
+  }, [open]);
 
   // Recherche débouncée.
   useEffect(() => {
+    if (!open) return;
     const q = query.trim();
     if (q.length < 3) {
       setResults([]);
@@ -53,31 +51,41 @@ export function SearchBox(): ReactElement {
           if (id !== reqId.current) return; // réponse périmée
           setResults(res);
           setError(false);
-          setOpen(true);
+          setShowResults(true);
         })
         .catch(() => {
           if (id !== reqId.current) return;
           setResults([]);
           setError(true);
-          setOpen(true);
+          setShowResults(true);
         })
         .finally(() => {
           if (id === reqId.current) setBusy(false);
         });
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [query]);
+  }, [query, open]);
+
+  if (!open) return null;
+
+  /** Referme la barre et remet l'état à zéro. */
+  function close(): void {
+    setOpen(false);
+    setQuery("");
+    setResults([]);
+    setShowResults(false);
+    setError(false);
+  }
 
   function recenter(r: GeocodeResult): void {
     flyTo(r.lon, r.lat);
-    setOpen(false);
+    close();
   }
 
   function dropPoi(r: GeocodeResult): void {
     addWaypoint(createWaypoint({ lat: r.lat, lon: r.lon, name: r.label }));
     flyTo(r.lon, r.lat);
-    setOpen(false);
-    setQuery("");
+    close();
   }
 
   return (
@@ -90,35 +98,25 @@ export function SearchBox(): ReactElement {
           placeholder="Rechercher un lieu, une adresse…"
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
-          onFocus={() => {
-            if (results.length > 0 || error) setOpen(true);
-          }}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
-              setOpen(false);
-              e.currentTarget.blur();
+              close();
             } else if (e.key === "Enter" && results[0] !== undefined) {
               recenter(results[0]);
             }
           }}
         />
-        {query !== "" && (
-          <button
-            type="button"
-            className="searchbox-clear"
-            title="Effacer"
-            onClick={() => {
-              setQuery("");
-              setResults([]);
-              setOpen(false);
-            }}
-          >
-            ✕
-          </button>
-        )}
+        <button
+          type="button"
+          className="searchbox-clear"
+          title="Fermer (Échap)"
+          onClick={close}
+        >
+          ✕
+        </button>
       </div>
 
-      {open && (
+      {showResults && (
         <ul className="searchbox-results">
           {busy && <li className="searchbox-msg">Recherche…</li>}
           {!busy && error && (

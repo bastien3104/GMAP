@@ -56,6 +56,7 @@ export function MenuBar(): ReactElement {
   const theme = useUiStore((s) => s.theme);
   const setTheme = useUiStore((s) => s.setTheme);
   const setHelpOpen = useUiStore((s) => s.setHelpOpen);
+  const setSearchOpen = useUiStore((s) => s.setSearchOpen);
   const setDownloadOpen = useUiStore((s) => s.setDownloadOpen);
   const setSplitOpen = useUiStore((s) => s.setSplitOpen);
   const setSimplifyOpen = useUiStore((s) => s.setSimplifyOpen);
@@ -105,6 +106,9 @@ export function MenuBar(): ReactElement {
         } else if (key === "e" && project !== null) {
           event.preventDefault();
           void saveAs(buildGpx(project), "gpx");
+        } else if (key === "f") {
+          event.preventDefault();
+          setSearchOpen(true);
         }
         return;
       }
@@ -400,6 +404,8 @@ export function MenuBar(): ReactElement {
       </Menu>
 
       <Menu label="Outils">
+        <MenuItem label="Rechercher un lieu…" onSelect={() => setSearchOpen(true)} />
+        <MenuSeparator />
         <MenuItem
           label="Inverser le sens"
           onSelect={() => {

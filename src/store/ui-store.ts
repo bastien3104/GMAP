@@ -42,6 +42,9 @@ interface UiState {
   /** Aide des raccourcis clavier ouverte. */
   helpOpen: boolean;
   setHelpOpen: (open: boolean) => void;
+  /** Barre de recherche (géocodage) visible. */
+  searchOpen: boolean;
+  setSearchOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -64,4 +67,6 @@ export const useUiStore = create<UiState>((set) => ({
   setSmoothOpen: (smoothOpen) => set({ smoothOpen }),
   helpOpen: false,
   setHelpOpen: (helpOpen) => set({ helpOpen }),
+  searchOpen: false,
+  setSearchOpen: (searchOpen) => set({ searchOpen }),
 }));
