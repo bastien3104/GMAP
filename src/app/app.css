@@ -548,6 +548,95 @@ body {
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
+/* ===== Barre de recherche (géocodage) ===== */
+.searchbox {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1400;
+  width: min(420px, calc(100% - 120px));
+}
+.searchbox-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+.searchbox-icon {
+  font-size: 13px;
+  opacity: 0.7;
+}
+.searchbox-input input {
+  flex: 1 1 auto;
+  border: none;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: #222;
+}
+.searchbox-clear {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #888;
+  font-size: 13px;
+}
+.searchbox-results {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 4px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  max-height: 280px;
+  overflow-y: auto;
+}
+.searchbox-msg {
+  padding: 8px 10px;
+  color: #777;
+  font-size: 12px;
+}
+.searchbox-result {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.searchbox-label {
+  flex: 1 1 auto;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 7px 8px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  color: #222;
+}
+.searchbox-label:hover {
+  background: rgba(0, 119, 182, 0.1);
+}
+.searchbox-type {
+  color: #999;
+  font-size: 11px;
+}
+.searchbox-pin {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.searchbox-pin:hover {
+  background: rgba(0, 119, 182, 0.12);
+}
+
 /* ===== Éditeur de waypoint ===== */
 .wpt-editor {
   position: absolute;
@@ -690,6 +779,18 @@ body {
   .wpt-editor {
     background: #2a2a2e;
     color: #eee;
+  }
+  .searchbox-input,
+  .searchbox-results {
+    background: #2a2a2e;
+  }
+  .searchbox-input input,
+  .searchbox-label {
+    color: #eee;
+  }
+  .searchbox-label:hover,
+  .searchbox-pin:hover {
+    background: rgba(0, 119, 182, 0.25);
   }
   .wpt-field > span {
     color: #aaa;

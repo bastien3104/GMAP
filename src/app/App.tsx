@@ -5,6 +5,7 @@ import { ContextBar } from "../ui/ContextBar";
 import { LayersPanel } from "../ui/LayersPanel";
 import { ProfilePanel } from "../ui/ProfilePanel";
 import { WaypointEditor } from "../ui/WaypointEditor";
+import { SearchBox } from "../ui/SearchBox";
 import { DownloadDialog } from "../ui/DownloadDialog";
 import { SplitDialog } from "../ui/SplitDialog";
 import { SimplifyDialog } from "../ui/SimplifyDialog";
@@ -27,6 +28,7 @@ export function App(): ReactElement {
         <LayersPanel />
         <div className="map-region">
           <MapView />
+          <SearchBox />
           <WaypointEditor />
         </div>
       </div>
