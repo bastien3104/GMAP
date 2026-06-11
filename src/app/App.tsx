@@ -10,6 +10,7 @@ import { DownloadDialog } from "../ui/DownloadDialog";
 import { SplitDialog } from "../ui/SplitDialog";
 import { SimplifyDialog } from "../ui/SimplifyDialog";
 import { SmoothDialog } from "../ui/SmoothDialog";
+import { ExportDialog } from "../ui/ExportDialog";
 import { ShortcutsHelp } from "../ui/ShortcutsHelp";
 import { useEditorShortcuts } from "../ui/useEditorShortcuts";
 import { useTheme } from "../ui/useTheme";
@@ -40,6 +41,7 @@ export function App(): ReactElement {
       <SplitDialog />
       <SimplifyDialog />
       <SmoothDialog />
+      <ExportDialog />
       <ShortcutsHelp />
     </div>
   );

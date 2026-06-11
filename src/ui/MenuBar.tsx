@@ -57,6 +57,7 @@ export function MenuBar(): ReactElement {
   const setTheme = useUiStore((s) => s.setTheme);
   const setHelpOpen = useUiStore((s) => s.setHelpOpen);
   const setSearchOpen = useUiStore((s) => s.setSearchOpen);
+  const setExportOpen = useUiStore((s) => s.setExportOpen);
   const setDownloadOpen = useUiStore((s) => s.setDownloadOpen);
   const setSplitOpen = useUiStore((s) => s.setSplitOpen);
   const setSimplifyOpen = useUiStore((s) => s.setSimplifyOpen);
@@ -341,6 +342,12 @@ export function MenuBar(): ReactElement {
           onSelect={() => {
             if (project !== null) void saveBinary(buildFit(project), "fit");
           }}
+          disabled={!hasProject}
+        />
+        <MenuSeparator />
+        <MenuItem
+          label="Exporter (sélection)…"
+          onSelect={() => setExportOpen(true)}
           disabled={!hasProject}
         />
       </Menu>

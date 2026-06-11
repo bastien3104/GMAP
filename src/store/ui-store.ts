@@ -45,6 +45,9 @@ interface UiState {
   /** Barre de recherche (géocodage) visible. */
   searchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
+  /** Dialogue d'export sélectif ouvert. */
+  exportOpen: boolean;
+  setExportOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -69,4 +72,6 @@ export const useUiStore = create<UiState>((set) => ({
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   searchOpen: false,
   setSearchOpen: (searchOpen) => set({ searchOpen }),
+  exportOpen: false,
+  setExportOpen: (exportOpen) => set({ exportOpen }),
 }));
