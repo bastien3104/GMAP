@@ -280,3 +280,10 @@
 - **Animations** : entrée en scène des régions (menubar/calques/dock décalés), popovers et
   dialogues en pop, pulsation du mode actif, tracé du logo en stroke-dashoffset ;
   désactivées sous `prefers-reduced-motion`. Aucune fonctionnalité modifiée.
+
+## 2026-06-11 — Calques : cartes de tracés
+- **Les traces deviennent des cartes** (`track-card`) dans le panneau Calques : liseré de
+  la couleur de trace, nom éditable, chips distance + D+ (`trackStats`, mémoïsé par
+  trace), badge trace/route ; actions (ordre/suppression) révélées au survol. Les POI
+  restent en lignes compactes. Aucune commande supprimée (visibilité, couleur, renommage,
+  ordre, suppression, sélection).

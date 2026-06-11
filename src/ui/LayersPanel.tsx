@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { waypointSymbol, type Track, type Waypoint } from "../core/model";
+import { trackStats } from "../core/geo/stats";
 import { useProjectStore } from "../store/project-store";
 import { useUiStore } from "../store/ui-store";
 import { flyTo } from "../map/map-ref";
@@ -127,7 +128,14 @@ interface TrackRowProps {
   count: number;
 }
 
-/** Ligne d'une trace ; nom et couleur sont commités au blur (une entrée d'historique). */
+/** Formate une distance en mètres (UI). */
+function formatDistance(meters: number): string {
+  return meters >= 1000
+    ? `${(meters / 1000).toFixed(1)} km`
+    : `${Math.round(meters)} m`;
+}
+
+/** Carte d'une trace (nom, distance, D+) ; nom et couleur commités au blur. */
 function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
   const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
   const selectTrack = useProjectStore((s) => s.selectTrack);
@@ -143,74 +151,97 @@ function TrackRow({ track, index, count }: TrackRowProps): ReactElement {
   useEffect(() => setColorDraft(track.color), [track.color]);
 
   const isSelected = track.id === selectedTrackId;
+  const stats = useMemo(() => trackStats(track), [track]);
+
+  const cardClass = [
+    "track-card",
+    isSelected ? "selected" : "",
+    track.visible ? "" : "muted",
+  ]
+    .filter((c) => c !== "")
+    .join(" ");
 
   return (
-    <li
-      className={isSelected ? "layer-row selected" : "layer-row"}
-      onClick={() => selectTrack(track.id)}
-    >
-      <input
-        type="checkbox"
-        checked={track.visible}
-        onChange={() => toggleVisibility(track.id)}
-        onClick={(e) => e.stopPropagation()}
-        title="Visibilité"
-      />
-      <input
-        type="color"
-        value={color}
-        onChange={(e) => setColorDraft(e.currentTarget.value)}
-        onBlur={() => {
-          if (color !== track.color) setColor(track.id, color);
-        }}
-        onClick={(e) => e.stopPropagation()}
-        title="Couleur"
-      />
-      <input
-        className="layer-name"
-        value={name}
-        onChange={(e) => setName(e.currentTarget.value)}
-        onBlur={() => {
-          if (name !== track.name) rename(track.id, name);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") e.currentTarget.blur();
-        }}
-        onClick={(e) => e.stopPropagation()}
-      />
-      <span className="layer-meta">{track.kind === "route" ? "route" : "trace"}</span>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          move(track.id, "up");
-        }}
-        disabled={index === 0}
-        title="Monter"
-      >
-        <IconArrowUp size={13} />
-      </button>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          move(track.id, "down");
-        }}
-        disabled={index === count - 1}
-        title="Descendre"
-      >
-        <IconArrowDown size={13} />
-      </button>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          remove(track.id);
-        }}
-        title="Supprimer"
-      >
-        <IconClose size={13} />
-      </button>
+    <li className={cardClass} onClick={() => selectTrack(track.id)}>
+      <span className="track-card-edge" style={{ background: track.color }} />
+      <div className="track-card-body">
+        <div className="track-card-top">
+          <input
+            type="checkbox"
+            checked={track.visible}
+            onChange={() => toggleVisibility(track.id)}
+            onClick={(e) => e.stopPropagation()}
+            title="Visibilité"
+          />
+          <input
+            className="track-card-name"
+            value={name}
+            onChange={(e) => setName(e.currentTarget.value)}
+            onBlur={() => {
+              if (name !== track.name) rename(track.id, name);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColorDraft(e.currentTarget.value)}
+            onBlur={() => {
+              if (color !== track.color) setColor(track.id, color);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            title="Couleur"
+          />
+        </div>
+        <div className="track-card-stats">
+          <span className="track-stat" title="Distance">
+            {formatDistance(stats.distance)}
+          </span>
+          <span className="track-stat ascent" title="Dénivelé positif">
+            ↗ {Math.round(stats.ascent)} m
+          </span>
+          <span className="track-kind">
+            {track.kind === "route" ? "route" : "trace"}
+          </span>
+        </div>
+      </div>
+      <div className="track-card-actions">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            move(track.id, "up");
+          }}
+          disabled={index === 0}
+          title="Monter"
+        >
+          <IconArrowUp size={12} />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            remove(track.id);
+          }}
+          title="Supprimer"
+        >
+          <IconClose size={12} />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            move(track.id, "down");
+          }}
+          disabled={index === count - 1}
+          title="Descendre"
+        >
+          <IconArrowDown size={12} />
+        </button>
+      </div>
     </li>
   );
 }
