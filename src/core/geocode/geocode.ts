@@ -70,6 +70,33 @@ export function parseGeocodeResponse(jsonText: string): GeocodeResult[] {
   return results;
 }
 
+/**
+ * Géocodage inverse : nom de lieu le plus proche d'un point, ou `null`.
+ * Tolérant : tout échec (réseau/hors-ligne) renvoie `null` sans lever.
+ */
+export async function reverseGeocode(lon: number, lat: number): Promise<string | null> {
+  try {
+    let jsonText: string;
+    if (isTauri()) {
+      jsonText = await invoke<string>("geocode_reverse_online", { lon, lat });
+    } else {
+      const params = new URLSearchParams({
+        lon: String(lon),
+        lat: String(lat),
+        index: "address,poi",
+        limit: "1",
+      });
+      const response = await fetch(`https://data.geopf.fr/geocodage/reverse?${params.toString()}`);
+      if (!response.ok) return null;
+      jsonText = await response.text();
+    }
+    const results = parseGeocodeResponse(jsonText);
+    return results[0]?.label ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Recherche des adresses/lieux pour une requête texte (vide → liste vide). */
 export async function geocodeSearch(query: string): Promise<GeocodeResult[]> {
   const q = query.trim();

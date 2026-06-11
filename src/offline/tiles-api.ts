@@ -46,6 +46,23 @@ export function cacheStats(layer: string): Promise<number> {
   return invoke<number>("cache_stats", { layer });
 }
 
+/** Taille totale (octets) du cache d'un fond. */
+export function cacheSize(layer: string): Promise<number> {
+  if (!isTauri()) return Promise.resolve(0);
+  return invoke<number>("cache_size", { layer });
+}
+
+/** Supprime les tuiles d'une zone (emprise + zooms) ; renvoie le nombre supprimé. */
+export function deleteZoneTiles(
+  layer: string,
+  minZoom: number,
+  maxZoom: number,
+  bbox: Bbox,
+): Promise<number> {
+  if (!isTauri()) return Promise.resolve(0);
+  return invoke<number>("delete_zone_tiles", { layer, minZoom, maxZoom, bbox });
+}
+
 /** S'abonne aux évènements de progression de téléchargement. */
 export function onDownloadProgress(
   callback: (progress: DownloadProgress) => void,
