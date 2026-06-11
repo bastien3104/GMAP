@@ -94,6 +94,8 @@ interface ProjectState {
   selectWaypoint: (id: string | null) => void;
   /** Ajoute un waypoint et le sélectionne. */
   addWaypoint: (waypoint: Waypoint) => void;
+  /** Ajoute un lot de waypoints en une seule entrée d'historique (import photos). */
+  addWaypoints: (waypoints: Waypoint[]) => void;
   /** Modifie un waypoint (nom/note/symbole/altitude). */
   updateWaypoint: (id: string, patch: WaypointPatch) => void;
   /** Déplace un waypoint. */
@@ -259,6 +261,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
     get().applyEdit((p) => opAddWaypoint(p, waypoint));
     set({ selectedWaypointId: waypoint.id });
+  },
+  addWaypoints: (waypoints) => {
+    if (waypoints.length === 0) return;
+    const { project } = get();
+    if (project === null) {
+      const base = createEmptyProject();
+      set({ project: { ...base, waypoints }, past: [], future: [], selectedWaypointId: null });
+      return;
+    }
+    get().applyEdit((p) => ({ ...p, waypoints: [...p.waypoints, ...waypoints] }));
   },
   updateWaypoint: (id, patch) => get().applyEdit((p) => opUpdateWaypoint(p, id, patch)),
   moveWaypoint: (id, lon, lat) => get().applyEdit((p) => opMoveWaypoint(p, id, lon, lat)),

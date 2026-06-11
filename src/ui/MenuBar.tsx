@@ -10,8 +10,11 @@ import { buildKml } from "../core/export/kml";
 import { buildTcx } from "../core/export/tcx";
 import { buildFit } from "../core/export/fit";
 import { createDrawingTrack } from "../core/edit/draw-ops";
+import { parseExifGps } from "../core/exif/exif";
+import { photoToWaypoint, type PhotoStatus } from "../core/exif/photo-import";
 import { fetchElevations, trackCoords } from "../core/elevation/elevation-client";
 import { DEFAULT_SPIKE_THRESHOLD_M } from "../core/geo/elevation-clean";
+import type { Waypoint } from "../core/model";
 import { useProjectStore } from "../store/project-store";
 import { useMapStore } from "../store/map-store";
 import { useUiStore } from "../store/ui-store";
@@ -20,10 +23,12 @@ import { Menu, MenuItem, MenuSeparator } from "./Menu";
 /** Barre de menus principale (Fichier / Édition / Carte / Outils) + indicateur réseau. */
 export function MenuBar(): ReactElement {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
 
   const project = useProjectStore((s) => s.project);
   const selectedTrackId = useProjectStore((s) => s.selectedTrackId);
   const importProject = useProjectStore((s) => s.importProject);
+  const addWaypoints = useProjectStore((s) => s.addWaypoints);
   const addTrack = useProjectStore((s) => s.addTrack);
   const setTrackElevations = useProjectStore((s) => s.setTrackElevations);
   const past = useProjectStore((s) => s.past);
@@ -111,6 +116,41 @@ export function MenuBar(): ReactElement {
     const files = Array.from(event.currentTarget.files ?? []);
     event.currentTarget.value = "";
     if (files.length > 0) void importFiles(files);
+  }
+
+  async function importPhotos(files: File[]): Promise<void> {
+    // Trace de corrélation pour les photos sans GPS : sélectionnée, sinon la première.
+    const proj = useProjectStore.getState().project;
+    const track =
+      proj?.tracks.find((t) => t.id === selectedTrackId) ?? proj?.tracks[0];
+    const created: Waypoint[] = [];
+    const counts: Record<PhotoStatus, number> = {
+      geotagged: 0,
+      correlated: 0,
+      skipped: 0,
+    };
+    for (const file of files) {
+      try {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const exif = parseExifGps(bytes);
+        const result = photoToWaypoint(file.name, exif, track);
+        counts[result.status] += 1;
+        if (result.waypoint !== undefined) created.push(result.waypoint);
+      } catch {
+        counts.skipped += 1;
+      }
+    }
+    if (created.length > 0) addWaypoints(created);
+    flash(
+      `Photos : ${counts.geotagged} géolocalisée(s), ${counts.correlated} corrélée(s), ` +
+        `${counts.skipped} ignorée(s).`,
+    );
+  }
+
+  function onPhotoInputChange(event: ChangeEvent<HTMLInputElement>): void {
+    const files = Array.from(event.currentTarget.files ?? []);
+    event.currentTarget.value = "";
+    if (files.length > 0) void importPhotos(files);
   }
 
   async function saveAs(content: string, ext: string): Promise<void> {
@@ -202,11 +242,23 @@ export function MenuBar(): ReactElement {
         onChange={onInputChange}
         hidden
       />
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/jpeg,.jpg,.jpeg"
+        multiple
+        onChange={onPhotoInputChange}
+        hidden
+      />
 
       <Menu label="Fichier">
         <MenuItem
           label="Ouvrir des GPX…"
           onSelect={() => fileInputRef.current?.click()}
+        />
+        <MenuItem
+          label="Importer des photos…"
+          onSelect={() => photoInputRef.current?.click()}
         />
         <MenuSeparator />
         <MenuItem
