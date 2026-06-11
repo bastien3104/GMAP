@@ -55,6 +55,7 @@ export function MenuBar(): ReactElement {
 
   const theme = useUiStore((s) => s.theme);
   const setTheme = useUiStore((s) => s.setTheme);
+  const setHelpOpen = useUiStore((s) => s.setHelpOpen);
   const setDownloadOpen = useUiStore((s) => s.setDownloadOpen);
   const setSplitOpen = useUiStore((s) => s.setSplitOpen);
   const setSimplifyOpen = useUiStore((s) => s.setSimplifyOpen);
@@ -86,6 +87,46 @@ export function MenuBar(): ReactElement {
   useEffect(() => {
     if (project === null && poiMode) setPoiMode(false);
   }, [project, poiMode, setPoiMode]);
+
+  // Raccourcis globaux : Ctrl+O/E (fichier), ? (aide), d/e/p (modes).
+  useEffect(() => {
+    function onKey(event: KeyboardEvent): void {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target !== null &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
+      if (event.ctrlKey || event.metaKey) {
+        const key = event.key.toLowerCase();
+        if (key === "o") {
+          event.preventDefault();
+          fileInputRef.current?.click();
+        } else if (key === "e" && project !== null) {
+          event.preventDefault();
+          void saveAs(buildGpx(project), "gpx");
+        }
+        return;
+      }
+      if (typing) return;
+      if (event.key === "?") {
+        event.preventDefault();
+        setHelpOpen(true);
+      } else if (event.key === "d" || event.key === "D") {
+        event.preventDefault();
+        toggleDraw();
+      } else if ((event.key === "e" || event.key === "E") && selectedTrackId !== null) {
+        event.preventDefault();
+        setEditMode(!editMode);
+      } else if (event.key === "p" || event.key === "P") {
+        event.preventDefault();
+        setPoiMode(!poiMode);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project, editMode, poiMode, selectedTrackId]);
 
   function flash(message: string): void {
     setStatus(message);
@@ -409,6 +450,10 @@ export function MenuBar(): ReactElement {
           disabled={!hasSelection}
         />
         <MenuItem label="Télécharger la zone…" onSelect={() => setDownloadOpen(true)} />
+      </Menu>
+
+      <Menu label="Aide">
+        <MenuItem label="Raccourcis clavier…" onSelect={() => setHelpOpen(true)} />
       </Menu>
 
       <div className="menubar-spacer" />

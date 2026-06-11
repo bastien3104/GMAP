@@ -22,6 +22,20 @@ export function SearchBox(): ReactElement {
   const [error, setError] = useState(false);
   const [open, setOpen] = useState(false);
   const reqId = useRef(0);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Ctrl/Cmd+F : focus de la recherche.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent): void {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Recherche débouncée.
   useEffect(() => {
@@ -71,6 +85,7 @@ export function SearchBox(): ReactElement {
       <div className="searchbox-input">
         <span className="searchbox-icon">🔍</span>
         <input
+          ref={inputRef}
           type="text"
           placeholder="Rechercher un lieu, une adresse…"
           value={query}

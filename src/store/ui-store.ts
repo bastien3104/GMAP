@@ -39,6 +39,9 @@ interface UiState {
   /** Dialogue de lissage ouvert. */
   smoothOpen: boolean;
   setSmoothOpen: (open: boolean) => void;
+  /** Aide des raccourcis clavier ouverte. */
+  helpOpen: boolean;
+  setHelpOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -59,4 +62,6 @@ export const useUiStore = create<UiState>((set) => ({
   setSimplifyOpen: (simplifyOpen) => set({ simplifyOpen }),
   smoothOpen: false,
   setSmoothOpen: (smoothOpen) => set({ smoothOpen }),
+  helpOpen: false,
+  setHelpOpen: (helpOpen) => set({ helpOpen }),
 }));
