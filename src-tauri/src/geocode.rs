@@ -6,6 +6,7 @@ use tauri::{AppHandle, Manager};
 use crate::AppState;
 
 const ENDPOINT: &str = "https://data.geopf.fr/geocodage/search";
+const REVERSE_ENDPOINT: &str = "https://data.geopf.fr/geocodage/reverse";
 
 /// Recherche d'adresses/lieux pour une requête texte ; renvoie le JSON brut (GeoJSON).
 #[tauri::command]
@@ -28,6 +29,33 @@ pub async fn geocode_online(app: AppHandle, query: String) -> Result<String, Str
             .map_err(|e| e.to_string())?;
         if !resp.status().is_success() {
             return Err(format!("Service de géocodage : HTTP {}", resp.status()));
+        }
+        resp.text().map_err(|e| e.to_string())
+    });
+    handle.await.map_err(|e| e.to_string())?
+}
+
+/// Géocodage inverse : nom de lieu le plus proche d'un point ; renvoie le JSON brut.
+#[tauri::command]
+pub async fn geocode_reverse_online(
+    app: AppHandle,
+    lon: f64,
+    lat: f64,
+) -> Result<String, String> {
+    let http = app.state::<AppState>().http.clone();
+    let handle = tauri::async_runtime::spawn_blocking(move || -> Result<String, String> {
+        let resp = http
+            .get(REVERSE_ENDPOINT)
+            .query(&[
+                ("lon", lon.to_string().as_str()),
+                ("lat", lat.to_string().as_str()),
+                ("index", "address,poi"),
+                ("limit", "1"),
+            ])
+            .send()
+            .map_err(|e| e.to_string())?;
+        if !resp.status().is_success() {
+            return Err(format!("Géocodage inverse : HTTP {}", resp.status()));
         }
         resp.text().map_err(|e| e.to_string())
     });

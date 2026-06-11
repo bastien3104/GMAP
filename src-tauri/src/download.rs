@@ -104,6 +104,35 @@ pub async fn download_zone(
     handle.await.map_err(|e| e.to_string())?
 }
 
+/// Supprime du cache les tuiles d'une zone (emprise + plage de zooms) pour libérer
+/// l'espace. Des tuiles partagées avec une autre zone peuvent partir (re-téléchargées
+/// en ligne au besoin). Renvoie le nombre de tuiles supprimées.
+#[tauri::command]
+pub async fn delete_zone_tiles(
+    app: AppHandle,
+    layer: String,
+    min_zoom: u32,
+    max_zoom: u32,
+    bbox: BboxArg,
+) -> Result<usize, String> {
+    if min_zoom > max_zoom {
+        return Err("Plage de zooms invalide.".into());
+    }
+    let tiles = enumerate(&bbox, min_zoom, max_zoom);
+    let handle = tauri::async_runtime::spawn_blocking(move || -> Result<usize, String> {
+        let db_path = mbtiles::mbtiles_path(&app, &layer)?;
+        let conn = mbtiles::open_init(&db_path).map_err(|e| e.to_string())?;
+        let _ = conn.execute_batch("BEGIN");
+        let mut deleted = 0usize;
+        for &(z, x, y) in &tiles {
+            deleted += mbtiles::delete_tile(&conn, z, x, y).map_err(|e| e.to_string())?;
+        }
+        let _ = conn.execute_batch("COMMIT");
+        Ok(deleted)
+    });
+    handle.await.map_err(|e| e.to_string())?
+}
+
 fn download_blocking(
     app: AppHandle,
     layer: String,

@@ -79,3 +79,19 @@ pub fn count_tiles(conn: &Connection) -> i64 {
     conn.query_row("SELECT COUNT(*) FROM tiles", [], |row| row.get(0))
         .unwrap_or(0)
 }
+
+/// Taille totale (octets) des tuiles en cache pour ce fond.
+pub fn total_bytes(conn: &Connection) -> i64 {
+    conn.query_row("SELECT COALESCE(SUM(LENGTH(tile_data)), 0) FROM tiles", [], |row| {
+        row.get(0)
+    })
+    .unwrap_or(0)
+}
+
+/// Supprime une tuile du cache. Renvoie le nombre de lignes supprimées (0 ou 1).
+pub fn delete_tile(conn: &Connection, z: u32, x: u32, y: u32) -> rusqlite::Result<usize> {
+    conn.execute(
+        "DELETE FROM tiles WHERE zoom_level = ?1 AND tile_column = ?2 AND tile_row = ?3",
+        params![z, x, tms_row(z, y)],
+    )
+}

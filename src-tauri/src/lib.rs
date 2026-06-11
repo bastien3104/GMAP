@@ -46,6 +46,14 @@ fn cache_stats(app: tauri::AppHandle, layer: String) -> Result<i64, String> {
     Ok(mbtiles::count_tiles(&conn))
 }
 
+/// Taille totale (octets) du cache de tuiles d'un fond.
+#[tauri::command]
+fn cache_size(app: tauri::AppHandle, layer: String) -> Result<i64, String> {
+    let path = mbtiles::mbtiles_path(&app, &layer)?;
+    let conn = mbtiles::open_init(&path).map_err(|e| e.to_string())?;
+    Ok(mbtiles::total_bytes(&conn))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let http = reqwest::blocking::Client::builder()
@@ -72,10 +80,13 @@ pub fn run() {
             save_binary_file,
             set_offline,
             cache_stats,
+            cache_size,
             download::download_zone,
+            download::delete_zone_tiles,
             routing::route_online,
             elevation::elevation_online,
-            geocode::geocode_online
+            geocode::geocode_online,
+            geocode::geocode_reverse_online
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
