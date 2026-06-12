@@ -84,6 +84,7 @@ pub fn run() {
             download::download_zone,
             download::delete_zone_tiles,
             routing::route_online,
+            routing::route_brouter,
             elevation::elevation_online,
             geocode::geocode_online,
             geocode::geocode_reverse_online

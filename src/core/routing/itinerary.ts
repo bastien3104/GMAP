@@ -1,5 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { TrackPoint } from "../model";
+import { buildBrouterUrl, parseBrouterResponse, type BrouterProfile } from "./brouter";
 
 /**
  * Client du service d'itinéraire online de la Géoplateforme (snap-to-path).
@@ -8,8 +9,25 @@ import type { TrackPoint } from "../model";
  * en dev navigateur, `fetch` direct. Le parsing de la réponse est pur et testé.
  */
 
-/** Profils de routage online supportés. */
-export type RoutingProfile = "pedestrian" | "car";
+/**
+ * Profils de routage online supportés : graphe IGN BD TOPO (`pedestrian`/`car`)
+ * ou graphe OSM via BRouter (`osm-*`), plus riche en sentiers.
+ */
+export type RoutingProfile =
+  | "pedestrian"
+  | "car"
+  | "osm-hiking"
+  | "osm-mtb"
+  | "osm-bike";
+
+/** Profil app → profil du serveur BRouter (`null` = profil IGN). */
+export const BROUTER_PROFILE_BY_ROUTING: Record<RoutingProfile, BrouterProfile | null> = {
+  pedestrian: null,
+  car: null,
+  "osm-hiking": "hiking-mountain",
+  "osm-mtb": "mtb",
+  "osm-bike": "trekking",
+};
 
 /** Segment routé : géométrie + métriques. */
 export interface RoutedSegment {
@@ -20,9 +38,9 @@ export interface RoutedSegment {
 
 const ENDPOINT = "https://data.geopf.fr/navigation/itineraire";
 
-/** Construit l'URL de requête d'itinéraire (`start`/`end` = [lon, lat]). */
+/** Construit l'URL de requête d'itinéraire IGN (`start`/`end` = [lon, lat]). */
 export function buildItineraryUrl(
-  profile: RoutingProfile,
+  profile: "pedestrian" | "car",
   start: [number, number],
   end: [number, number],
 ): string {
@@ -63,17 +81,38 @@ export function parseItineraryResponse(jsonText: string): RoutedSegment {
   };
 }
 
-/** Calcule un segment routé entre deux points (sous Tauri : commande Rust ; sinon fetch). */
+/**
+ * Calcule un segment routé entre deux points, sur le graphe choisi par le
+ * profil : IGN BD TOPO ou OSM (BRouter). Sous Tauri, l'appel HTTP passe par la
+ * commande Rust correspondante (évite le CORS) ; en dev navigateur, fetch direct.
+ */
 export async function routeSegment(
   profile: RoutingProfile,
   start: [number, number],
   end: [number, number],
 ): Promise<RoutedSegment> {
+  const brouterProfile = BROUTER_PROFILE_BY_ROUTING[profile];
   let jsonText: string;
+  if (brouterProfile !== null) {
+    if (isTauri()) {
+      jsonText = await invoke<string>("route_brouter", {
+        profile: brouterProfile,
+        start,
+        end,
+      });
+    } else {
+      const response = await fetch(buildBrouterUrl(brouterProfile, start, end));
+      if (!response.ok) throw new Error(`Serveur BRouter : HTTP ${response.status}`);
+      jsonText = await response.text();
+    }
+    return parseBrouterResponse(jsonText);
+  }
+
+  const ignProfile = profile === "car" ? "car" : "pedestrian";
   if (isTauri()) {
-    jsonText = await invoke<string>("route_online", { profile, start, end });
+    jsonText = await invoke<string>("route_online", { profile: ignProfile, start, end });
   } else {
-    const response = await fetch(buildItineraryUrl(profile, start, end));
+    const response = await fetch(buildItineraryUrl(ignProfile, start, end));
     if (!response.ok) throw new Error(`Service d'itinéraire : HTTP ${response.status}`);
     jsonText = await response.text();
   }

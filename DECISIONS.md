@@ -309,3 +309,11 @@
   paliers de zones pour la FC (couleurs partagées avec l'analyse).
 - **Comparaison de profils** : profil d'une autre trace superposé en pointillés dans le
   dock (échelles communes), sélecteur local — pas d'état global nécessaire.
+
+## 2026-06-12 — Routage OSM (BRouter) en plus de l'IGN
+- **Second graphe de routage** pour « suivre les sentiers » : serveur public BRouter
+  (brouter.de, graphe OSM, sans clé) à côté de la Géoplateforme IGN (BD TOPO). OSM est
+  bien plus riche en sentiers (singles, sentes). Profils : rando montagne, VTT, vélo.
+  Sélecteur à optgroups dans la barre contextuelle ; les segments BRouter arrivent avec
+  l'altitude (3e composante GeoJSON). Sous Tauri : commande Rust `route_brouter` (CORS).
+  Offline BRouter (.rd5) toujours possible plus tard (4b-ii).
