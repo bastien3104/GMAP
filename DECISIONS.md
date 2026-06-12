@@ -321,3 +321,8 @@
   rando montagne + BRouter VTT en parallèle, le segment le plus court gagne — c'est par
   définition le tracé voulu) ; « voiture » = IGN ; « vélo (route) » = BRouter trekking.
   Sélection pure et testée (`pickShortestSegment`).
+- **« Le plus court » remplacé par un score de cohérence** (le plus court choisissait
+  des candidats raccrochés au mauvais endroit) : continuité aux ancres (poids 4),
+  écart moyen au corridor ancre→clic (poids 2), pénalité de détour (poids 1) ;
+  hystérésis 15 % + 10 m sur le moteur du segment précédent (évite les zigzags de
+  raccord). `pickCoherentSegment` pur et testé.
