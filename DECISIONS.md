@@ -317,3 +317,7 @@
   Sélecteur à optgroups dans la barre contextuelle ; les segments BRouter arrivent avec
   l'altitude (3e composante GeoJSON). Sous Tauri : commande Rust `route_brouter` (CORS).
   Offline BRouter (.rd5) toujours possible plus tard (4b-ii).
+- **Profils simplifiés à trois choix** : « à pied » = combiné (IGN piéton + BRouter
+  rando montagne + BRouter VTT en parallèle, le segment le plus court gagne — c'est par
+  définition le tracé voulu) ; « voiture » = IGN ; « vélo (route) » = BRouter trekking.
+  Sélection pure et testée (`pickShortestSegment`).

@@ -79,17 +79,11 @@ export function ContextBar(): ReactElement | null {
         <select
           value={routingProfile}
           onChange={(e) => setRoutingProfile(e.currentTarget.value as RoutingProfile)}
-          title="Réseau et profil de routage"
+          title="Profil de routage — à pied combine IGN, rando et VTT (OSM) et garde le plus court"
         >
-          <optgroup label="IGN (BD TOPO)">
-            <option value="pedestrian">à pied</option>
-            <option value="car">voiture</option>
-          </optgroup>
-          <optgroup label="OSM (BRouter) — plus de sentiers">
-            <option value="osm-hiking">rando montagne</option>
-            <option value="osm-mtb">VTT</option>
-            <option value="osm-bike">vélo</option>
-          </optgroup>
+          <option value="pedestrian">à pied</option>
+          <option value="car">voiture</option>
+          <option value="bike">vélo (route)</option>
         </select>
       )}
       <span className="context-hint">
