@@ -1,0 +1,63 @@
+# Release GMAP : compile les installeurs (macOS .dmg universel + Windows NSIS)
+# et les publie dans une release GitHub à chaque tag `v*` (ex. v0.1.0).
+#
+# Usage : git tag v0.1.0 && git push origin v0.1.0
+# Note : binaires non signés (pas de compte Apple Developer) — sur macOS,
+# ouvrir l'app via clic droit → Ouvrir, ou `xattr -cr /Applications/GMAP.app`.
+
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: --target universal-apple-darwin
+          - platform: windows-latest
+            args: ""
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "GMAP ${{ github.ref_name }}"
+          releaseBody: |
+            Installeurs GMAP :
+            - **macOS** : `.dmg` (universel Intel + Apple Silicon) — app non signée :
+              clic droit → Ouvrir au premier lancement.
+            - **Windows** : installeur NSIS (`-setup.exe`).
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}

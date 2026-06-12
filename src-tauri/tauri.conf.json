@@ -25,7 +25,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": ["nsis", "app", "dmg"],
     "publisher": "Bastien Stefani",
     "copyright": "© 2026 Bastien Stefani",
     "category": "Utility",
