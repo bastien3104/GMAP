@@ -176,6 +176,56 @@ describe("parseFit", () => {
     expect(result.activity.startTime).toBe(result.points[0]!.time);
   });
 
+  it("préserve les capteurs et le sport au round-trip export → import", () => {
+    const points: TrackPoint[] = [
+      {
+        lat: 45.9,
+        lon: 6.87,
+        ele: 1035,
+        time: "2026-06-01T08:00:00.000Z",
+        hr: 120,
+        cadence: 80,
+        power: 200,
+        temp: 12,
+        speed: 2.5,
+      },
+      {
+        lat: 45.91,
+        lon: 6.88,
+        ele: 1150,
+        time: "2026-06-01T08:10:00.000Z",
+        hr: 145,
+        // cadence absente sur ce point : doit ressortir absente, pas 0.
+        power: 230,
+        temp: 11,
+        speed: 3.1,
+      },
+    ];
+    const project = createEmptyProject("Sortie capteurs");
+    project.tracks.push(
+      createTrack({
+        name: "Sortie",
+        segments: [points],
+        activity: { sport: "hiking" },
+      }),
+    );
+
+    const result = parseFit(buildFit(project));
+
+    expect(result.activity.sport).toBe("hiking");
+    const p0 = result.points[0]!;
+    expect(p0.hr).toBe(120);
+    expect(p0.cadence).toBe(80);
+    expect(p0.power).toBe(200);
+    expect(p0.temp).toBe(12);
+    expect(p0.speed).toBeCloseTo(2.5, 3);
+    const p1 = result.points[1]!;
+    expect(p1.hr).toBe(145);
+    expect(p1.cadence).toBeUndefined();
+    expect(p1.power).toBe(230);
+    expect(p1.speed).toBeCloseTo(3.1, 3);
+  });
+
   it("rejette un fichier non FIT avec une erreur claire", () => {
     expect(() => parseFit(new Uint8Array([1, 2, 3]))).toThrow(FitParseError);
     const garbage = new Uint8Array(64).fill(0xab);
